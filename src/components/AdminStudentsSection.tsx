@@ -1089,8 +1089,8 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
       {/* VIEW MODE 2: TABLE VIEW WITH QUICK INLINE EDIT & BATCH SELECT */}
       {viewMode === 'table' && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="overflow-x-auto custom-scrollbar scroll-smooth touch-pan-x">
+            <table className="w-full min-w-[850px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
                   <th className="py-3 px-3 w-10 text-center">

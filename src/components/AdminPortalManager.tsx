@@ -451,7 +451,7 @@ export const AdminPortalManager: React.FC = () => {
         </div>
 
         {/* Sub-tab switcher */}
-        <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-white/10">
+        <div className="flex flex-nowrap sm:flex-wrap gap-2 mt-5 pt-4 border-t border-white/10 overflow-x-auto custom-scrollbar scroll-smooth pb-1 sm:pb-0">
           <button
             onClick={() => setSubTab('accounts')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
@@ -571,8 +571,8 @@ export const AdminPortalManager: React.FC = () => {
 
           {/* Student Accounts Table */}
           <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto custom-scrollbar scroll-smooth touch-pan-x">
+              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
                     <th className="p-3">Student Info</th>
@@ -776,7 +776,7 @@ export const AdminPortalManager: React.FC = () => {
             </button>
           </div>
 
-          <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-xs bg-white">
+          <div className="border border-slate-200 rounded-xl overflow-x-auto custom-scrollbar scroll-smooth touch-pan-x shadow-xs bg-white">
             <table className="w-full text-left border-collapse text-xs min-w-[750px]">
               <thead>
                 <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">

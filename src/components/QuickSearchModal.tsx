@@ -183,7 +183,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           id="search-results-listbox"
           role="listbox"
           aria-label="Search suggestions"
-          className="max-h-[60vh] overflow-y-auto space-y-1.5 p-1"
+          className="max-h-[60vh] overflow-y-auto custom-scrollbar scroll-smooth touch-pan-y space-y-1.5 p-1"
         >
           {searchResults === null ? (
             <div className="p-6 text-center space-y-3">

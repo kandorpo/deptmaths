@@ -29,10 +29,16 @@ import {
   IdCard,
   Layers,
   ArrowRight,
+  ArrowUp,
   AlertCircle,
   RefreshCw,
   Info,
-  AlertTriangle
+  AlertTriangle,
+  Search,
+  Filter,
+  Clock,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { DEFAULT_STUDENT_PROFILES } from '../data/departmentData';
 import { StudentProfile } from '../types';
@@ -118,6 +124,11 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
 
   const [activeTab, setActiveTab] = useState<'profile' | 'downloads' | 'routine'>('profile');
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
+
+  // Public/Guest portal states
+  const [publicSemester, setPublicSemester] = useState('B.Sc. 1st Semester (Major)');
+  const [publicResourceCategory, setPublicResourceCategory] = useState<'all' | 'Syllabus' | 'PYQ' | 'Lecture Notes' | 'Handbook'>('all');
+  const [publicResourceSearch, setPublicResourceSearch] = useState('');
 
   // Stored / Logged-in Student state
   const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
@@ -218,6 +229,35 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
       setEditInterests(currentStudent.interests?.join(', ') || '');
     }
   }, [currentStudent]);
+
+  // Scroll management states & refs
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const studentScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleStudentScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const scrollTop = target.scrollTop;
+    const scrollHeight = target.scrollHeight - target.clientHeight;
+    const progress = scrollHeight > 0 ? Math.min(100, Math.max(0, Math.round((scrollTop / scrollHeight) * 100))) : 0;
+    setScrollProgress(progress);
+    setShowScrollTop(scrollTop > 100);
+  };
+
+  const scrollToTop = () => {
+    if (studentScrollRef.current) {
+      studentScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Reset scroll on tab or view changes
+  useEffect(() => {
+    if (studentScrollRef.current) {
+      studentScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setScrollProgress(0);
+    setShowScrollTop(false);
+  }, [activeTab, authMode]);
 
   if (!isOpen) return null;
 
@@ -524,19 +564,17 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
     setIsEditingProfile(false);
   };
 
-
-
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="student-portal-title"
     >
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 p-5 sm:p-7 space-y-5">
+      <div className="bg-white rounded-2xl max-w-4xl w-full h-[94dvh] sm:h-[92dvh] max-h-[calc(100dvh-16px)] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Header Bar */}
-        <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+        <div className="p-4 sm:p-6 border-b border-slate-200 flex items-start justify-between shrink-0 bg-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="p-2.5 sm:p-3 bg-blue-900 text-amber-400 rounded-xl shadow-xs" aria-hidden="true">
               <GraduationCap className="w-6 h-6" />
@@ -547,9 +585,9 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                   Student Academic Hub & Profile
                 </span>
                 {currentStudent && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    <span>Logged In</span>
+                    <span>{currentStudent.fullName}</span>
                   </span>
                 )}
               </div>
@@ -568,54 +606,69 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 border-b border-slate-100 pb-2.5" role="tablist" aria-label="Student portal navigation">
-          <button
-            onClick={() => setActiveTab('profile')}
-            role="tab"
-            aria-selected={activeTab === 'profile'}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'profile'
-                ? 'bg-blue-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>{currentStudent ? 'My Student Profile' : 'Student Login & Register'}</span>
-          </button>
+        {/* Interactive Scroll Progress Indicator */}
+        <div className="w-full h-1 bg-slate-100 shrink-0 relative overflow-hidden" title={`Scroll Progress: ${scrollProgress}%`}>
+          <div 
+            className="h-full bg-gradient-to-r from-blue-700 via-indigo-600 to-amber-500 transition-all duration-150 ease-out"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
 
-          {currentStudent && (
-            <>
+        {/* Tab Navigation - Only accessible after a student logs in */}
+        {currentStudent && (
+          <div className="px-4 sm:px-6 pt-3 pb-2.5 border-b border-slate-100 bg-white shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar scroll-smooth touch-pan-x" role="tablist" aria-label="Student portal navigation">
+              <button
+                onClick={() => setActiveTab('profile')}
+                role="tab"
+                aria-selected={activeTab === 'profile'}
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 ${
+                  activeTab === 'profile'
+                    ? 'bg-blue-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>My Profile</span>
+              </button>
+
               <button
                 onClick={() => setActiveTab('downloads')}
                 role="tab"
                 aria-selected={activeTab === 'downloads'}
-                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'downloads'
                     ? 'bg-blue-900 text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Study Materials & Papers</span>
+                <span>Study Materials & PYQs</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('routine')}
                 role="tab"
                 aria-selected={activeTab === 'routine'}
-                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 ${
                   activeTab === 'routine'
                     ? 'bg-blue-900 text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span>My Class Routine</span>
+                <span>Class Routine & Timetable</span>
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Body Container */}
+        <div 
+          ref={studentScrollRef}
+          onScroll={handleStudentScroll}
+          className="flex-1 min-h-0 overflow-y-auto custom-scrollbar scroll-smooth p-4 sm:p-6 space-y-6 touch-pan-y relative overscroll-contain"
+        >
 
         {/* TAB 1: STUDENT PROFILE & AUTHENTICATION */}
         {activeTab === 'profile' && (
@@ -1491,71 +1544,181 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
           </div>
         )}
 
-        {/* TAB 2: DOWNLOADS & STUDY RESOURCES (Only after login) */}
-        {activeTab === 'downloads' && currentStudent && (
-          <div className="space-y-3">
-            <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-blue-950 flex items-center justify-between">
+        {/* TAB 2: DOWNLOADS & STUDY RESOURCES (Accessible to all students and guests) */}
+        {activeTab === 'downloads' && (
+          <div className="space-y-4">
+            {/* Banner */}
+            <div className="p-4 bg-gradient-to-r from-blue-900 to-indigo-950 text-white rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="font-bold block">Study Materials, Syllabus & Question Banks</span>
-                <p className="text-[11px] text-slate-600">Confidential repository for enrolled department students.</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className="w-4 h-4 text-amber-400" />
+                  <span className="font-bold text-sm">Study Materials, Syllabus & Question Banks</span>
+                </div>
+                <p className="text-xs text-blue-200">
+                  {currentStudent 
+                    ? `Curated repository mapped to ${currentStudent.semester} • ${currentStudent.program}`
+                    : 'Open academic resource repository for Gauhati University B.Sc. & M.Sc. Mathematics.'}
+                </p>
               </div>
-              <span className="text-[10px] font-mono bg-white px-2 py-1 rounded border border-blue-200 font-bold text-blue-900">
-                {currentStudent.semester}
-              </span>
+              {currentStudent ? (
+                <span className="text-[11px] font-mono bg-white/15 px-3 py-1 rounded-lg border border-white/20 font-bold text-amber-300 self-start sm:self-auto">
+                  {currentStudent.semester}
+                </span>
+              ) : (
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-lg transition-colors cursor-pointer self-start sm:self-auto shadow-xs"
+                >
+                  Student Login
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {portalResources.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-blue-900/40 hover:bg-white transition-all space-y-2 flex flex-col justify-between"
-                >
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 uppercase">
-                      {item.category}
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 leading-snug">
-                      {item.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={publicResourceSearch}
+                  onChange={(e) => setPublicResourceSearch(e.target.value)}
+                  placeholder="Search papers, calculus notes, linear algebra, PYQs..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-900 transition-colors"
+                />
+                {publicResourceSearch && (
+                  <button
+                    onClick={() => setPublicResourceSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
 
-                  <div className="pt-2 flex items-center justify-between border-t border-slate-200/60 text-xs">
-                    <span className="text-[10px] font-mono text-slate-400">{item.fileType}</span>
+              {/* Category Pills */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                {(['all', 'Syllabus', 'PYQ', 'Lecture Notes', 'Handbook'] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setPublicResourceCategory(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                      publicResourceCategory === cat
+                        ? 'bg-blue-900 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {cat === 'all' ? 'All Materials' : cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Resources Grid */}
+            {(() => {
+              const filtered = portalResources.filter((item) => {
+                const matchesCategory = publicResourceCategory === 'all' || item.category === publicResourceCategory;
+                const matchesSearch = !publicResourceSearch || 
+                  item.title.toLowerCase().includes(publicResourceSearch.toLowerCase()) ||
+                  item.description.toLowerCase().includes(publicResourceSearch.toLowerCase()) ||
+                  item.category.toLowerCase().includes(publicResourceSearch.toLowerCase());
+                return matchesCategory && matchesSearch;
+              });
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-700">No matching study materials found</p>
+                    <p className="text-[11px] text-slate-400 mt-1">Try modifying your search keywords or resetting categories.</p>
                     <button
-                      onClick={() => downloadStudyResourcePDF(item)}
-                      className="px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white text-[11px] font-bold rounded-lg flex items-center gap-1 transition-colors cursor-pointer shadow-xs active:scale-95"
+                      onClick={() => {
+                        setPublicResourceSearch('');
+                        setPublicResourceCategory('all');
+                      }}
+                      className="mt-3 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                     >
-                      <Download className="w-3 h-3" />
-                      <span>Download PDF</span>
+                      Show All Resources
                     </button>
                   </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {filtered.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-blue-900/40 hover:bg-white transition-all space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 uppercase">
+                            {item.category}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">{item.fileType}</span>
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900 leading-snug">
+                          {item.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between border-t border-slate-200/60 text-xs">
+                        <span className="text-[10px] text-slate-400 font-medium">Department Verified</span>
+                        <button
+                          onClick={() => downloadStudyResourcePDF(item)}
+                          className="px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white text-[11px] font-bold rounded-lg flex items-center gap-1 transition-colors cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <Download className="w-3 h-3" />
+                          <span>Download PDF</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         )}
 
-        {/* TAB 3: PERSONALIZED CLASS ROUTINE (Only after login, filtered by student's semester) */}
-        {activeTab === 'routine' && currentStudent && (
+        {/* TAB 3: CLASS ROUTINE & TIMETABLE (Accessible to all students and guests) */}
+        {activeTab === 'routine' && (
           <div className="space-y-4 text-xs">
             <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold text-blue-950 text-sm block">
-                  Class Routine for Registered Semester: {currentStudent.semester}
+                  Department Class Routine & Lecture Schedule
                 </span>
                 <p className="text-[11px] text-slate-600">
-                  Secure academic schedule mapped to your student profile • Autumn Semester 2026
+                  {currentStudent 
+                    ? `Registered Profile: ${currentStudent.fullName} • ${currentStudent.semester}`
+                    : 'Official Timetable • Autumn Semester 2026 • Science Block'}
                 </p>
               </div>
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs font-mono font-bold bg-white text-blue-900 px-2.5 py-1 rounded border border-blue-200">
-                  {currentStudent.program}
-                </span>
+              
+              {/* Semester Selector & Download PDF */}
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <div className="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-blue-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Semester:</span>
+                  <select
+                    value={currentStudent?.semester || publicSemester}
+                    onChange={(e) => setPublicSemester(e.target.value)}
+                    className="text-xs font-bold text-blue-950 bg-transparent outline-none cursor-pointer"
+                  >
+                    <option value="B.Sc. 1st Semester (Major)">B.Sc. 1st Sem (Major)</option>
+                    <option value="B.Sc. 2nd Semester (Major)">B.Sc. 2nd Sem (Major)</option>
+                    <option value="B.Sc. 3rd Semester (Major)">B.Sc. 3rd Sem (Major)</option>
+                    <option value="B.Sc. 4th Semester (Major)">B.Sc. 4th Sem (Major)</option>
+                    <option value="B.Sc. 5th Semester (Major)">B.Sc. 5th Sem (Major)</option>
+                    <option value="B.Sc. 6th Semester (Major)">B.Sc. 6th Sem (Major)</option>
+                    <option value="M.Sc. Mathematics">M.Sc. Mathematics</option>
+                  </select>
+                </div>
+
                 <button
-                  onClick={() => downloadClassRoutinePDF(routineSlots, currentStudent.semester || 'Semester Routine')}
+                  onClick={() => downloadClassRoutinePDF(routineSlots, currentStudent?.semester || publicSemester)}
                   className="px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
                   title="Download Routine PDF to Device"
                 >
@@ -1566,7 +1729,8 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
             </div>
 
             {(() => {
-              const semStr = (currentStudent.semester || '').toLowerCase();
+              const targetSem = currentStudent?.semester || publicSemester;
+              const semStr = (targetSem || '').toLowerCase();
               let semNum = 1;
               if (semStr.includes('1') || semStr.includes('first') || semStr.includes('i')) semNum = 1;
               else if (semStr.includes('2') || semStr.includes('second') || semStr.includes('ii')) semNum = 2;
@@ -1580,64 +1744,88 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
               return (
                 <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
                   <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between font-bold text-slate-700">
-                    <span>Time Slot & Day</span>
-                    <span>B.Sc. / M.Sc. Semester {semNum} Lecture Plan</span>
+                    <span>Time Slot & Lecture Schedule</span>
+                    <span>B.Sc. / M.Sc. Semester {semNum} Routine Matrix</span>
                   </div>
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                        <th className="p-3">Time Slot & Schedule</th>
-                        <th className="p-3">Course Title & Instructor</th>
-                        <th className="p-3">Course Type</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700">
-                      {routineSlots.map((slot) => {
-                        const entry = slot[semKey] || { course: '', type: 'Major' };
-                        return (
-                          <tr key={slot.id} className="hover:bg-slate-50">
-                            <td className="p-3 font-mono">
-                              <span className="font-bold text-blue-900 block">{slot.timeSlot}</span>
-                              <span className="text-[10px] text-slate-500">{slot.day || 'Monday - Saturday'}</span>
-                            </td>
-                            <td className="p-3 font-medium">
-                              {entry.course ? (
-                                <span className="text-slate-900">{entry.course}</span>
-                              ) : (
-                                <span className="text-slate-300">— No Lecture Scheduled</span>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              {entry.course ? (
-                                <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
-                                  entry.type === 'Major' ? 'bg-blue-100 text-blue-900' :
-                                  entry.type === 'Minor' ? 'bg-amber-100 text-amber-900' : 'bg-purple-100 text-purple-900'
-                                }`}>
-                                  {entry.type}
-                                </span>
-                              ) : (
-                                <span className="text-slate-350">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  
+                  {/* Table with horizontal scroll support for mobile and tablet */}
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse text-xs min-w-[500px]">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                          <th className="p-3 w-44">Time Slot & Day</th>
+                          <th className="p-3">Course Title & Instructor</th>
+                          <th className="p-3 w-28">Course Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                        {routineSlots.map((slot) => {
+                          const entry = slot[semKey] || { course: '', type: 'Major' };
+                          return (
+                            <tr key={slot.id} className="hover:bg-slate-50">
+                              <td className="p-3 font-mono">
+                                <span className="font-bold text-blue-900 block">{slot.timeSlot}</span>
+                                <span className="text-[10px] text-slate-500">{slot.day || 'Monday - Saturday'}</span>
+                              </td>
+                              <td className="p-3 font-medium">
+                                {entry.course ? (
+                                  <span className="text-slate-900 font-semibold">{entry.course}</span>
+                                ) : (
+                                  <span className="text-slate-300 italic">— No Lecture Scheduled</span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                {entry.course ? (
+                                  <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
+                                    entry.type === 'Major' ? 'bg-blue-100 text-blue-900' :
+                                    entry.type === 'Minor' ? 'bg-amber-100 text-amber-900' : 'bg-purple-100 text-purple-900'
+                                  }`}>
+                                    {entry.type}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               );
             })()}
           </div>
         )}
 
-        {/* Footer info & close */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-xs">
-          <span className="text-[11px] text-slate-400">
+        {/* Floating Scroll-to-Top Control */}
+        {showScrollTop && (
+          <div className="sticky float-right bottom-3 right-3 z-40 flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-auto">
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="px-3 py-1.5 bg-blue-950/90 hover:bg-blue-900 text-white rounded-full shadow-xl border border-blue-800 backdrop-blur-md transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 text-xs font-bold cursor-pointer group"
+              title="Scroll to Top"
+            >
+              <ArrowUp className="w-3.5 h-3.5 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+              <span className="hidden sm:inline">Top</span>
+              <span className="bg-blue-900 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                {scrollProgress}%
+              </span>
+            </button>
+          </div>
+        )}
+
+        </div>
+
+        {/* Modal Footer Bar */}
+        <div className="p-4 sm:px-6 py-3 border-t border-slate-200 shrink-0 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+          <span className="text-[11px] text-slate-400 text-center sm:text-left">
             Dudhnoi College Mathematics Department • ERP & Academic Registry
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg cursor-pointer transition-colors"
           >
             Close Portal
           </button>

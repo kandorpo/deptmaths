@@ -38,6 +38,7 @@ import {
   UserPlus,
   ShieldAlert,
   ArrowRight,
+  ArrowUp,
   UserCheck,
   PanelBottom
 } from 'lucide-react';
@@ -226,6 +227,42 @@ export const AdminCMSModal: React.FC = () => {
       }
     }
   }, [departmentInfo, isAdminOpen, isAdminLoggedIn]);
+
+  // Scroll management states & refs
+  const [contentScrollProgress, setContentScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const authScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleContentScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const scrollTop = target.scrollTop;
+    const scrollHeight = target.scrollHeight - target.clientHeight;
+    const progress = scrollHeight > 0 ? Math.min(100, Math.max(0, Math.round((scrollTop / scrollHeight) * 100))) : 0;
+    setContentScrollProgress(progress);
+    setShowScrollTop(scrollTop > 100);
+  };
+
+  const scrollToTop = () => {
+    if (contentScrollRef.current) {
+      contentScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (authScrollRef.current) {
+      authScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Reset scroll position on tab or auth mode switch
+  useEffect(() => {
+    if (contentScrollRef.current) {
+      contentScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (authScrollRef.current) {
+      authScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setContentScrollProgress(0);
+    setShowScrollTop(false);
+  }, [activeTab, authMode]);
 
   // File import ref
   const importFileRef = useRef<HTMLInputElement>(null);
@@ -536,12 +573,12 @@ export const AdminCMSModal: React.FC = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/85 backdrop-blur-xs animate-in fade-in duration-150"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-cms-title"
     >
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[calc(100dvh-16px)] sm:max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-5xl w-full h-[94dvh] sm:h-[92dvh] max-h-[calc(100dvh-16px)] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Top Header Bar */}
         <div className="flex items-center justify-between px-5 py-4 bg-slate-900 text-white border-b border-slate-800 shrink-0">
@@ -588,6 +625,14 @@ export const AdminCMSModal: React.FC = () => {
           </div>
         </div>
 
+        {/* Interactive Scroll Progress Indicator */}
+        <div className="w-full h-1 bg-slate-800 shrink-0 relative overflow-hidden" title={`Scroll: ${contentScrollProgress}%`}>
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 via-amber-400 to-emerald-400 transition-all duration-150 ease-out"
+            style={{ width: `${contentScrollProgress}%` }}
+          />
+        </div>
+
         {/* Notification Toast */}
         {statusMsg && (
           <div className="bg-emerald-600 text-white px-4 py-2 text-xs font-bold flex items-center justify-between shrink-0 animate-in fade-in">
@@ -603,10 +648,15 @@ export const AdminCMSModal: React.FC = () => {
 
         {/* Content Body */}
         {!isAdminLoggedIn ? (
-          <div className="flex-1 overflow-y-auto w-full flex flex-col relative touch-pan-y">
+          <div 
+            ref={authScrollRef}
+            onScroll={handleContentScroll}
+            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar scroll-smooth w-full flex flex-col relative touch-pan-y"
+          >
             {authMode === 'login' ? (
               /* Login Screen */
-              <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-md mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="min-h-full flex flex-col items-center justify-center py-6 sm:py-10 px-4 sm:px-8 w-full animate-in fade-in zoom-in-95 duration-200">
+                <div className="max-w-md w-full mx-auto text-center space-y-6 flex flex-col items-center">
                 <div className="w-16 h-16 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100">
                   <Lock className="w-8 h-8 text-blue-900" />
               </div>
@@ -648,14 +698,14 @@ export const AdminCMSModal: React.FC = () => {
                     <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                       Security Password
                     </label>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode('forgot')}
+                      className="text-[10px] text-blue-900 hover:underline font-bold"
+                    >
+                      Forgot Password?
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode('forgot')}
-                    className="text-[10px] text-blue-900 hover:underline font-bold"
-                  >
-                    Forgot Password?
-                  </button>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -678,7 +728,7 @@ export const AdminCMSModal: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full mt-2 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full mt-2 py-3 bg-blue-900 hover:bg-blue-950 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Unlock className="w-4 h-4 text-amber-400" />
                   <span>Unlock Control Panel</span>
@@ -702,10 +752,12 @@ export const AdminCMSModal: React.FC = () => {
                   </button>
                 </p>
               </div>
+              </div>
             </div>
           ) : authMode === 'forgot' ? (
             /* Forgot Password Screen */
-            <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-md mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
+            <div className="min-h-full flex flex-col items-center justify-center py-6 sm:py-10 px-4 sm:px-8 w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="max-w-md w-full mx-auto text-center space-y-6 flex flex-col items-center">
               <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner border border-amber-100">
                 <RefreshCw className="w-8 h-8 text-amber-600" />
               </div>
@@ -746,7 +798,7 @@ export const AdminCMSModal: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full mt-2 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full mt-2 py-3 bg-blue-900 hover:bg-blue-950 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-amber-400" />
                   <span>Send Reset Instructions</span>
@@ -760,10 +812,12 @@ export const AdminCMSModal: React.FC = () => {
                   Back to Login
                 </button>
               </form>
+              </div>
             </div>
           ) : (
             /* Register Screen */
-            <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-lg mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
+            <div className="min-h-full flex flex-col items-center justify-center py-6 sm:py-10 px-4 sm:px-8 w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="max-w-lg w-full mx-auto text-center space-y-6 flex flex-col items-center">
               <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner border border-amber-100">
                 <UserPlus className="w-8 h-8 text-amber-600" />
               </div>
@@ -778,7 +832,7 @@ export const AdminCMSModal: React.FC = () => {
               </div>
 
               {/* High Contrast Super Admin Approval Warning */}
-              <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-left space-y-2">
+              <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-left space-y-2 w-full">
                 <p className="text-amber-900 font-bold text-xs flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Super Admin Authorization Enforced</span>
@@ -879,7 +933,7 @@ export const AdminCMSModal: React.FC = () => {
                 <div className="sm:col-span-2 pt-2">
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 bg-amber-600 hover:bg-amber-700 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4 text-white" />
                     <span>Submit Registration Request</span>
@@ -898,15 +952,16 @@ export const AdminCMSModal: React.FC = () => {
                   <span>Back to Administrator Login</span>
                 </button>
               </div>
+              </div>
             </div>
           )}
-          </div>
+        </div>
         ) : (
           /* Admin Tabs & Editing Panels */
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
             
             {/* Sidebar Navigation Tabs */}
-            <div className="w-full md:w-56 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-2 sm:p-3 flex md:flex-col gap-1 overflow-x-auto md:overflow-y-auto shrink-0 text-xs">
+            <div className="w-full md:w-56 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-2 sm:p-3 flex md:flex-col gap-1 overflow-x-auto md:overflow-y-auto custom-scrollbar scroll-smooth shrink-0 text-xs touch-pan-x">
               <button
                 onClick={() => setActiveTab('general')}
                 className={`px-3 py-2 rounded-xl font-bold flex items-center gap-2 text-left whitespace-nowrap transition-colors cursor-pointer ${
@@ -1113,8 +1168,12 @@ export const AdminCMSModal: React.FC = () => {
             </div>
 
             {/* Main Panel Content Area */}
-            <div className="flex-1 p-5 sm:p-7 overflow-y-auto space-y-6 relative touch-pan-y">
-              
+            <div 
+              ref={contentScrollRef}
+              onScroll={handleContentScroll}
+              className="flex-1 min-h-0 p-5 sm:p-7 overflow-y-auto custom-scrollbar scroll-smooth space-y-6 relative touch-pan-y overscroll-contain"
+            >
+
               {/* TAB 1: General Info */}
               {activeTab === 'general' && (
                 <form onSubmit={handleSaveGeneralInfo} className="space-y-5 text-xs">
@@ -4448,6 +4507,24 @@ export const AdminCMSModal: React.FC = () => {
 
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Floating Scroll-to-Top Control */}
+              {showScrollTop && (
+                <div className="sticky float-right bottom-3 right-3 z-40 flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="px-3 py-1.5 bg-slate-900/95 hover:bg-blue-900 text-white rounded-full shadow-xl border border-slate-700 backdrop-blur-md transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 text-xs font-bold cursor-pointer group"
+                    title="Scroll to Top"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+                    <span className="hidden sm:inline">Top</span>
+                    <span className="bg-slate-800 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                      {contentScrollProgress}%
+                    </span>
+                  </button>
                 </div>
               )}
 
