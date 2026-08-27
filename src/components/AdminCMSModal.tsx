@@ -603,11 +603,12 @@ export const AdminCMSModal: React.FC = () => {
 
         {/* Content Body */}
         {!isAdminLoggedIn ? (
-          authMode === 'login' ? (
-            /* Login Screen */
-            <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-md mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100">
-                <Lock className="w-8 h-8 text-blue-900" />
+          <div className="flex-1 overflow-y-auto w-full flex flex-col">
+            {authMode === 'login' ? (
+              /* Login Screen */
+              <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-md mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-16 h-16 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100">
+                  <Lock className="w-8 h-8 text-blue-900" />
               </div>
 
               <div className="space-y-2">
@@ -898,7 +899,8 @@ export const AdminCMSModal: React.FC = () => {
                 </button>
               </div>
             </div>
-          )
+          )}
+          </div>
         ) : (
           /* Admin Tabs & Editing Panels */
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
