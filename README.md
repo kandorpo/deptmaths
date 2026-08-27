@@ -4,7 +4,7 @@ This is a modern, static, single-page application built for the Department of Ma
 
 ## Features
 
-- **Fully Static & GitHub Pages Ready**: All assets use correct relative paths and the Vite configuration (`base: '/deptmaths/'`) is specifically set up to host from `https://<username>.github.io/deptmaths/`.
+- **Fully Static & GitHub Pages Ready**: All assets use correct relative paths and the Vite configuration (`base: './'`) is specifically set up to host from `https://<username>.github.io/deptmaths/`.
 - **Offline & Sandbox Compatible**: Includes a local storage fallback mechanism. It stores data locally, avoiding any reliance on backend development servers, meaning it runs flawlessly on static hosts.
 - **Pre-configured Routing & Caching**: Assets are versioned via Vite upon build, avoiding stale caching on GitHub Pages. The included `404.html` also handles GitHub Pages history API quirks gracefully.
 
@@ -48,6 +48,6 @@ Within a few minutes, your fully functioning, identical website will be live at:
 
 ## Troubleshooting
 
-- **404 Errors / Missing Assets**: The `vite.config.ts` file is hardcoded to `/deptmaths/`. If you ever change the repository name, you **MUST** update `base: '/deptmaths/'` in `vite.config.ts` to match your new repository name.
+- **404 Errors / Blank White Screens**: The `vite.config.ts` file is now configured with a completely relative base path (`base: './'`). This means your website will work on ANY repository name (or even your root domain) without showing a blank white page out of the box.
 - **Different Content**: By default, the site is designed to immediately fallback to the `src/data/liveData.json` which contains your customized text, faculty, and notices so that it looks exactly like the preview on any device.
 
