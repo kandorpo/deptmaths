@@ -653,6 +653,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               return;
             }
 
+            // Keep local state reference in sync with remote data
+            stateRef.current = { ...stateRef.current, ...data };
+
             if (data.departmentInfo) setDepartmentInfo((prev) => ({ ...prev, ...data.departmentInfo }));
             if (Array.isArray(data.faculty)) {
               setFaculty(data.faculty);

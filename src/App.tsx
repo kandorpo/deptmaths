@@ -110,8 +110,19 @@ function AppContent() {
                   Offline Sandbox Mode (Cloud Connection Offline or Quota Reached)
                 </p>
                 <p className="text-xs text-amber-900/80 mt-0.5">
-                  The Google Cloud Firestore database is currently unreachable or the daily free-tier quota has been exhausted. All features remain <strong className="font-semibold text-amber-950">fully operational</strong>. All edits, faculty updates, circular posts, and student accounts are stored instantly inside your browser's local sandbox storage.
+                  The Google Cloud Firestore database is currently unreachable (likely due to a large image/PDF upload exceeding the 1MB free-tier limit). All features remain <strong className="font-semibold text-amber-950">fully operational</strong>. All edits are stored inside your browser's local sandbox storage.
                 </p>
+                <button 
+                  onClick={() => {
+                    if (window.confirm("This will clear your stuck offline edits and restore the website from the Cloud. Continue?")) {
+                      localStorage.clear();
+                      window.location.reload();
+                    }
+                  }}
+                  className="mt-2 text-xs font-bold text-amber-950 bg-amber-500/20 hover:bg-amber-500/30 px-3 py-1.5 rounded-lg border border-amber-500/30 transition-colors"
+                >
+                  Clear Local Data & Reconnect to Cloud
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-2 mt-1 sm:mt-0 self-end sm:self-center">

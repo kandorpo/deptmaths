@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Action Buttons: Quick Links, Search, Student Portal */}
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden xl:flex items-center gap-2">
             {/* Quick Links Dropdown */}
             <div className="relative">
               <button
@@ -344,10 +344,34 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setMobileMenuOpen(false);
                   onOpenStudentPortal();
                 }}
-                className="w-full py-2.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-2.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 <GraduationCap className="w-4 h-4 text-amber-400" />
                 <span>Open Student Portal (Syllabus & PYQs)</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsAdminOpen(true);
+                }}
+                className={`w-full py-2.5 text-xs font-bold rounded-lg flex items-center justify-center gap-2 cursor-pointer border ${
+                  isAdminLoggedIn 
+                    ? 'bg-amber-400 text-slate-950 border-amber-500 hover:bg-amber-500' 
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isAdminLoggedIn ? (
+                  <>
+                    <Unlock className="w-4 h-4 text-slate-950" />
+                    <span>Admin CMS Panel</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4 text-amber-500" />
+                    <span>Administrator Login</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -541,7 +541,7 @@ export const AdminCMSModal: React.FC = () => {
       aria-modal="true"
       aria-labelledby="admin-cms-title"
     >
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[calc(100dvh-16px)] sm:max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Top Header Bar */}
         <div className="flex items-center justify-between px-5 py-4 bg-slate-900 text-white border-b border-slate-800 shrink-0">
@@ -603,7 +603,7 @@ export const AdminCMSModal: React.FC = () => {
 
         {/* Content Body */}
         {!isAdminLoggedIn ? (
-          <div className="flex-1 overflow-y-auto w-full flex flex-col">
+          <div className="flex-1 overflow-y-auto w-full flex flex-col relative touch-pan-y">
             {authMode === 'login' ? (
               /* Login Screen */
               <div className="p-8 sm:p-12 flex flex-col items-center justify-center max-w-md mx-auto text-center my-auto space-y-6 w-full animate-in fade-in zoom-in-95 duration-200">
@@ -1113,7 +1113,7 @@ export const AdminCMSModal: React.FC = () => {
             </div>
 
             {/* Main Panel Content Area */}
-            <div className="flex-1 p-5 sm:p-7 overflow-y-auto max-h-[calc(94vh-120px)] space-y-6">
+            <div className="flex-1 p-5 sm:p-7 overflow-y-auto space-y-6 relative touch-pan-y">
               
               {/* TAB 1: General Info */}
               {activeTab === 'general' && (
@@ -2503,6 +2503,10 @@ export const AdminCMSModal: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
+                                  if (file.size > 500 * 1024) {
+                                    alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct document URL.`);
+                                    return;
+                                  }
                                   const reader = new FileReader();
                                   reader.onload = (ev) => {
                                     const dataUrl = ev.target?.result as string;
@@ -2763,6 +2767,10 @@ export const AdminCMSModal: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
+                                  if (file.size > 500 * 1024) {
+                                    alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct document URL.`);
+                                    return;
+                                  }
                                   const reader = new FileReader();
                                   reader.onload = (ev) => {
                                     const dataUrl = ev.target?.result as string;
@@ -3061,6 +3069,10 @@ export const AdminCMSModal: React.FC = () => {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                if (file.size > 500 * 1024) {
+                                  alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct Google Drive link.`);
+                                  return;
+                                }
                                 const reader = new FileReader();
                                 reader.onload = (ev) => {
                                   const dataUrl = ev.target?.result as string;
