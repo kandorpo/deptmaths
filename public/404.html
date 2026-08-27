@@ -1,23 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Department of Mathematics | Dudhnoi College</title>
+    <title>Department of Mathematics | Redirecting...</title>
     <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // MIT License https://github.com/rafgraph/spa-github-pages
-      var pathSegmentsToKeep = 1;
+      // GitHub Pages Single Page Application Router Hack
+      // This script catches 404s and redirects them back to index.html
+      // preserving the path, search, and hash.
+      
       var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      
+      // Determine if this is hosted at a root domain (username.github.io/) 
+      // or a project repository (username.github.io/repository/)
+      var pathSegments = l.pathname.split('/');
+      var basePath = '/';
+      
+      if (pathSegments.length > 1 && pathSegments[1] !== '') {
+        // If it's a project page, the first segment is the repo name
+        basePath = '/' + pathSegments[1] + '/';
+      }
+
+      // Reconstruct the URL pointing to index.html (base path)
+      // We append the original path as a query string or hash so the SPA can handle it
+      var redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + basePath;
+      
+      // Pass the original route info via hash to prevent infinite 404 loops
+      var route = l.pathname + l.search + l.hash;
+      
+      l.replace(redirectUrl + '#!' + route);
     </script>
   </head>
-  <body>
+  <body style="background-color: #f8fafc; color: #1e293b; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+    <div>Redirecting to the correct page...</div>
   </body>
 </html>
