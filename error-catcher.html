@@ -1,6 +1,0 @@
-    <script>
-      // Display errors on screen instead of a blank white page
-      window.addEventListener('error', function(event) {
-        document.body.innerHTML += '<div style="color:red; background:white; position:fixed; z-index:9999; top:0; left:0; width:100%; padding:20px; font-family:sans-serif;"><b>JavaScript Error:</b> ' + event.message + '<br><small>' + event.filename + ':' + event.lineno + '</small></div>';
-      });
-    </script>

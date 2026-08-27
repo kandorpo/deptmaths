@@ -3,17 +3,9 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
-// Automatically detect GitHub Pages repository name for correct asset loading
-let githubBase = './';
-if (process.env.GITHUB_REPOSITORY) {
-  const repoName = process.env.GITHUB_REPOSITORY.split('/')[1];
-  // User/Organization pages are served at the root path, Project pages are served at /repoName/
-  githubBase = repoName.endsWith('.github.io') ? '/' : `/${repoName}/`;
-}
-
 export default defineConfig(() => {
   return {
-    base: process.env.GITHUB_ACTIONS ? githubBase : './',
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

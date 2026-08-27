@@ -1,20 +1,6 @@
 <!doctype html>
 <html lang="en" class="scroll-smooth">
   <head>
-    <script>
-      // Fix GitHub Pages trailing slash issue for relative paths
-      var path = window.location.pathname;
-      if (!path.endsWith('/') && path.split('/').pop().indexOf('.') === -1) {
-        window.location.replace(path + '/' + window.location.search + window.location.hash);
-      }
-      // Display errors on screen instead of a blank white page
-      window.addEventListener('error', function(event) {
-        document.body.innerHTML += '<div style="color:red; background:white; position:fixed; z-index:9999; top:0; left:0; width:100%; padding:20px; font-family:sans-serif; text-align:left; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><b>JavaScript Error:</b> ' + event.message + '<br><small>' + event.filename + ':' + event.lineno + '</small></div>';
-      });
-      window.addEventListener('unhandledrejection', function(event) {
-        document.body.innerHTML += '<div style="color:red; background:white; position:fixed; z-index:9999; top:80px; left:0; width:100%; padding:20px; font-family:sans-serif; text-align:left; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><b>Unhandled Promise:</b> ' + event.reason + '</div>';
-      });
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Department of Mathematics | Dudhnoi College</title>
