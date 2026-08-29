@@ -516,7 +516,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     studentGrievances,
     admins,
     adminRegistrationRequests,
-    updatedAt: initialCached?.updatedAt || Date.now()
+    updatedAt: initialCached?.updatedAt || 0
   });
 
   // Keep stateRef in sync whenever any state hook updates
@@ -601,7 +601,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         stateRef.current = {
           ...stateRef.current,
           ...parsed,
-          updatedAt: parsed.updatedAt || stateRef.current.updatedAt || Date.now()
+          updatedAt: parsed.updatedAt || stateRef.current.updatedAt || 0
         };
       }
 
@@ -696,7 +696,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             stateRef.current = {
               ...stateRef.current,
               ...data,
-              updatedAt: remoteUpdatedAt || Date.now()
+              updatedAt: remoteUpdatedAt || 0
             };
             try {
               localStorage.setItem(STORAGE_KEY, JSON.stringify(stateRef.current));
