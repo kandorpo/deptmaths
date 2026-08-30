@@ -24,7 +24,7 @@ export const CoursesSection: React.FC = () => {
 
   const levelTabs = [
     { label: 'All Programs', value: 'All' },
-    { label: 'Undergraduate (FYUGP)', value: 'UG' },
+    { label: 'Undergraduate (FYUGP/ITEP)', value: 'UG' },
     { label: 'Postgraduate (M.Sc.)', value: 'PG' },
     { label: 'Skill & Add-on', value: 'Add-on' },
   ];

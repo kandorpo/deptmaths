@@ -293,11 +293,11 @@ const DEFAULT_ADMIN_ACCOUNTS: AdminAccount[] = [
 // Helper to normalize routine slot structure
 const normalizeRoutineSlot = (slot: any): RoutineSlot => {
   const parseEntry = (val: any, defaultType: CourseType = 'Major'): RoutineCourseEntry => {
-    if (!val) return { course: '', type: defaultType };
+    if (!val) return { course: '', type: defaultType, time: '' };
     if (typeof val === 'object' && val.course !== undefined) {
-      return { course: val.course || '', type: val.type || defaultType };
+      return { course: val.course || '', type: val.type || defaultType, time: val.time || '' };
     }
-    return { course: String(val), type: defaultType };
+    return { course: String(val), type: defaultType, time: '' };
   };
 
   return {
@@ -310,6 +310,12 @@ const normalizeRoutineSlot = (slot: any): RoutineSlot => {
     sem4: parseEntry(slot.sem4, 'Major/Minor'),
     sem5: parseEntry(slot.sem5 || slot.sem5Major, 'Major'),
     sem6: parseEntry(slot.sem6 || slot.mscSlot, 'Major'),
+    sem7: parseEntry(slot.sem7, 'Major'),
+    sem8: parseEntry(slot.sem8, 'Major'),
+    msc1: parseEntry(slot.msc1, 'Major'),
+    msc2: parseEntry(slot.msc2, 'Major'),
+    msc3: parseEntry(slot.msc3, 'Major'),
+    msc4: parseEntry(slot.msc4, 'Major'),
   };
 };
 

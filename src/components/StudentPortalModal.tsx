@@ -41,7 +41,7 @@ import {
   Check
 } from 'lucide-react';
 import { DEFAULT_STUDENT_PROFILES } from '../data/departmentData';
-import { StudentProfile } from '../types';
+import { StudentProfile, RoutineSlot } from '../types';
 import { useDepartmentData } from '../context/DataContext';
 import { downloadStudyResourcePDF, downloadClassRoutinePDF } from '../utils/downloadHelper';
 
@@ -883,10 +883,7 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                           <span className="text-slate-500 block text-[11px]">Contact Phone</span>
                           <span className="font-medium text-slate-800">{currentStudent.phone}</span>
                         </div>
-                        <div>
-                          <span className="text-slate-500 block text-[11px]">Assigned Faculty Mentor</span>
-                          <span className="font-bold text-amber-700">{currentStudent.mentorName || 'Dr. Bidyut Kalita (HOD)'}</span>
-                        </div>
+
                         <div>
                           <span className="text-slate-500 block text-[11px]">Registration Date</span>
                           <span className="font-medium text-slate-800">{currentStudent.registeredDate}</span>
@@ -1713,7 +1710,12 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                     <option value="B.Sc. 4th Semester (Major)">B.Sc. 4th Sem (Major)</option>
                     <option value="B.Sc. 5th Semester (Major)">B.Sc. 5th Sem (Major)</option>
                     <option value="B.Sc. 6th Semester (Major)">B.Sc. 6th Sem (Major)</option>
-                    <option value="M.Sc. Mathematics">M.Sc. Mathematics</option>
+                    <option value="B.Sc. 7th Semester (Major)">B.Sc. 7th Sem (Major)</option>
+                    <option value="B.Sc. 8th Semester (Major)">B.Sc. 8th Sem (Major)</option>
+                    <option value="M.Sc. 1st Semester">M.Sc. 1st Semester</option>
+                    <option value="M.Sc. 2nd Semester">M.Sc. 2nd Semester</option>
+                    <option value="M.Sc. 3rd Semester">M.Sc. 3rd Semester</option>
+                    <option value="M.Sc. 4th Semester">M.Sc. 4th Semester</option>
                   </select>
                 </div>
 
@@ -1731,21 +1733,31 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
             {(() => {
               const targetSem = currentStudent?.semester || publicSemester;
               const semStr = (targetSem || '').toLowerCase();
-              let semNum = 1;
-              if (semStr.includes('1') || semStr.includes('first') || semStr.includes('i')) semNum = 1;
-              else if (semStr.includes('2') || semStr.includes('second') || semStr.includes('ii')) semNum = 2;
-              else if (semStr.includes('3') || semStr.includes('third') || semStr.includes('iii')) semNum = 3;
-              else if (semStr.includes('4') || semStr.includes('fourth') || semStr.includes('iv')) semNum = 4;
-              else if (semStr.includes('5') || semStr.includes('fifth') || semStr.includes('v')) semNum = 5;
-              else if (semStr.includes('6') || semStr.includes('sixth') || semStr.includes('vi')) semNum = 6;
-
-              const semKey = `sem${semNum}` as 'sem1' | 'sem2' | 'sem3' | 'sem4' | 'sem5' | 'sem6';
+              let semKey: keyof RoutineSlot = 'sem1';
+              
+              if (semStr.includes('m.sc') || semStr.includes('msc')) {
+                if (semStr.includes('1') || semStr.includes('first')) semKey = 'msc1';
+                else if (semStr.includes('2') || semStr.includes('second')) semKey = 'msc2';
+                else if (semStr.includes('3') || semStr.includes('third')) semKey = 'msc3';
+                else if (semStr.includes('4') || semStr.includes('fourth')) semKey = 'msc4';
+                else semKey = 'msc1'; // Default
+              } else {
+                if (semStr.includes('1') || semStr.includes('first') || semStr.includes('i')) semKey = 'sem1';
+                else if (semStr.includes('2') || semStr.includes('second') || semStr.includes('ii')) semKey = 'sem2';
+                else if (semStr.includes('3') || semStr.includes('third') || semStr.includes('iii')) semKey = 'sem3';
+                else if (semStr.includes('4') || semStr.includes('fourth') || semStr.includes('iv')) semKey = 'sem4';
+                else if (semStr.includes('5') || semStr.includes('fifth') || semStr.includes('v')) semKey = 'sem5';
+                else if (semStr.includes('6') || semStr.includes('sixth') || semStr.includes('vi')) semKey = 'sem6';
+                else if (semStr.includes('7') || semStr.includes('seventh') || semStr.includes('vii')) semKey = 'sem7';
+                else if (semStr.includes('8') || semStr.includes('eighth') || semStr.includes('viii')) semKey = 'sem8';
+                else semKey = 'sem1';
+              }
 
               return (
                 <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
                   <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between font-bold text-slate-700">
                     <span>Time Slot & Lecture Schedule</span>
-                    <span>B.Sc. / M.Sc. Semester {semNum} Routine Matrix</span>
+                    <span>Class Routine Matrix</span>
                   </div>
                   
                   {/* Table with horizontal scroll support for mobile and tablet */}
@@ -1753,42 +1765,48 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                     <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                       <thead>
                         <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                          <th className="p-3 w-44">Time Slot & Day</th>
+                          <th className="p-3 w-32">Day</th>
                           <th className="p-3">Course Title & Instructor</th>
+                          <th className="p-3 w-32">Time</th>
                           <th className="p-3 w-28">Course Type</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700">
-                        {routineSlots.map((slot) => {
-                          const entry = slot[semKey] || { course: '', type: 'Major' };
-                          return (
-                            <tr key={slot.id} className="hover:bg-slate-50">
-                              <td className="p-3 font-mono">
-                                <span className="font-bold text-blue-900 block">{slot.timeSlot}</span>
-                                <span className="text-[10px] text-slate-500">{slot.day || 'Monday - Saturday'}</span>
-                              </td>
-                              <td className="p-3 font-medium">
-                                {entry.course ? (
+                        {(() => {
+                          const validSlots = routineSlots.filter(slot => {
+                            const entry = (slot[semKey] as any) || { course: '' };
+                            return !!entry.course;
+                          });
+
+                          return validSlots.map((slot, index) => {
+                            const entry = (slot[semKey] as any) || { course: '', type: 'Major' };
+                            const prevSlot = index > 0 ? validSlots[index - 1] : null;
+                            const showDay = !prevSlot || prevSlot.day !== slot.day;
+
+                            return (
+                              <tr key={slot.id} className="hover:bg-slate-50">
+                                <td className="p-3 align-top border-r border-slate-50">
+                                  {showDay && <span className="font-bold text-slate-700">{slot.day || 'Mon-Sat'}</span>}
+                                </td>
+                                <td className="p-3 font-medium">
                                   <span className="text-slate-900 font-semibold">{entry.course}</span>
-                                ) : (
-                                  <span className="text-slate-300 italic">— No Lecture Scheduled</span>
-                                )}
-                              </td>
-                              <td className="p-3">
-                                {entry.course ? (
+                                </td>
+                                <td className="p-3 font-mono">
+                                  <span className="font-bold text-blue-900">{entry.time || slot.timeSlot || '—'}</span>
+                                </td>
+                                <td className="p-3">
                                   <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
                                     entry.type === 'Major' ? 'bg-blue-100 text-blue-900' :
-                                    entry.type === 'Minor' ? 'bg-amber-100 text-amber-900' : 'bg-purple-100 text-purple-900'
+                                    entry.type === 'Minor' ? 'bg-amber-100 text-amber-900' :
+                                    entry.type === 'ITEP' ? 'bg-emerald-100 text-emerald-900' : 'bg-purple-100 text-purple-900'
                                   }`}>
                                     {entry.type}
                                   </span>
-                                ) : (
-                                  <span className="text-slate-300">—</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
                       </tbody>
                     </table>
                   </div>

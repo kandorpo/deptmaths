@@ -192,11 +192,12 @@ export interface StudentResource {
   uploadedDate?: string;
 }
 
-export type CourseType = 'Major' | 'Minor' | 'Major/Minor';
+export type CourseType = 'Major' | 'Minor' | 'Major/Minor' | 'ITEP';
 
 export interface RoutineCourseEntry {
   course: string;
   type: CourseType;
+  time?: string;
 }
 
 export interface RoutineSlot {
@@ -209,6 +210,12 @@ export interface RoutineSlot {
   sem4: RoutineCourseEntry;
   sem5: RoutineCourseEntry;
   sem6: RoutineCourseEntry;
+  sem7?: RoutineCourseEntry;
+  sem8?: RoutineCourseEntry;
+  msc1?: RoutineCourseEntry;
+  msc2?: RoutineCourseEntry;
+  msc3?: RoutineCourseEntry;
+  msc4?: RoutineCourseEntry;
   // Legacy optional fallback fields
   sem1Major?: string;
   sem3Major?: string;

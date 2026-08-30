@@ -167,7 +167,13 @@ export const AdminPortalManager: React.FC = () => {
     sem3: { course: '', type: 'Major' },
     sem4: { course: '', type: 'Major/Minor' },
     sem5: { course: '', type: 'Major' },
-    sem6: { course: '', type: 'Major' }
+    sem6: { course: '', type: 'Major' },
+    sem7: { course: '', type: 'Major' },
+    sem8: { course: '', type: 'Major' },
+    msc1: { course: '', type: 'Major' },
+    msc2: { course: '', type: 'Major' },
+    msc3: { course: '', type: 'Major' },
+    msc4: { course: '', type: 'Major' }
   });
 
   // Grievance Response State
@@ -294,20 +300,25 @@ export const AdminPortalManager: React.FC = () => {
   // Routine Save
   const handleSaveRoutine = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!routineForm.timeSlot) {
-      alert('Time Slot is required.');
-      return;
-    }
+    
+    const finalTimeSlot = routineForm.timeSlot?.trim() || 'Mixed Times';
+
     const payload: RoutineSlot = {
       id: routineForm.id || `slot-${Date.now()}`,
-      timeSlot: routineForm.timeSlot.trim(),
+      timeSlot: finalTimeSlot,
       day: routineForm.day || 'Monday - Saturday',
       sem1: routineForm.sem1 || { course: '', type: 'Major' },
       sem2: routineForm.sem2 || { course: '', type: 'Minor' },
       sem3: routineForm.sem3 || { course: '', type: 'Major' },
       sem4: routineForm.sem4 || { course: '', type: 'Major/Minor' },
       sem5: routineForm.sem5 || { course: '', type: 'Major' },
-      sem6: routineForm.sem6 || { course: '', type: 'Major' }
+      sem6: routineForm.sem6 || { course: '', type: 'Major' },
+      sem7: routineForm.sem7 || { course: '', type: 'Major' },
+      sem8: routineForm.sem8 || { course: '', type: 'Major' },
+      msc1: routineForm.msc1 || { course: '', type: 'Major' },
+      msc2: routineForm.msc2 || { course: '', type: 'Major' },
+      msc3: routineForm.msc3 || { course: '', type: 'Major' },
+      msc4: routineForm.msc4 || { course: '', type: 'Major' }
     };
 
     if (editingRoutine) {
@@ -765,7 +776,13 @@ export const AdminPortalManager: React.FC = () => {
                   sem3: { course: '', type: 'Major' },
                   sem4: { course: '', type: 'Major/Minor' },
                   sem5: { course: '', type: 'Major' },
-                  sem6: { course: '', type: 'Major' }
+                  sem6: { course: '', type: 'Major' },
+                  sem7: { course: '', type: 'Major' },
+                  sem8: { course: '', type: 'Major' },
+                  msc1: { course: '', type: 'Major' },
+                  msc2: { course: '', type: 'Major' },
+                  msc3: { course: '', type: 'Major' },
+                  msc4: { course: '', type: 'Major' }
                 });
                 setIsAddingRoutine(true);
               }}
@@ -787,7 +804,13 @@ export const AdminPortalManager: React.FC = () => {
                   <th className="p-3">Sem 4</th>
                   <th className="p-3">Sem 5</th>
                   <th className="p-3">Sem 6</th>
-                  <th className="p-3 text-right">Actions</th>
+                  <th className="p-3">Sem 7</th>
+                  <th className="p-3">Sem 8</th>
+                  <th className="p-3">MSc 1</th>
+                  <th className="p-3">MSc 2</th>
+                  <th className="p-3">MSc 3</th>
+                  <th className="p-3">MSc 4</th>
+                  <th className="p-3 text-right z-10 sticky right-0 bg-slate-100">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -802,6 +825,12 @@ export const AdminPortalManager: React.FC = () => {
                     sem4: rawSlot.sem4 || { course: '', type: 'Major/Minor' },
                     sem5: rawSlot.sem5 || { course: (rawSlot as any).sem5Major || '', type: 'Major' },
                     sem6: rawSlot.sem6 || { course: (rawSlot as any).mscSlot || '', type: 'Major' },
+                    sem7: rawSlot.sem7 || { course: '', type: 'Major' },
+                    sem8: rawSlot.sem8 || { course: '', type: 'Major' },
+                    msc1: rawSlot.msc1 || { course: '', type: 'Major' },
+                    msc2: rawSlot.msc2 || { course: '', type: 'Major' },
+                    msc3: rawSlot.msc3 || { course: '', type: 'Major' },
+                    msc4: rawSlot.msc4 || { course: '', type: 'Major' },
                   };
                   return (
                     <tr key={slot.id} className="hover:bg-slate-50">
@@ -809,14 +838,16 @@ export const AdminPortalManager: React.FC = () => {
                         <span className="font-bold text-blue-900 block">{slot.timeSlot}</span>
                         <span className="text-[10px] text-slate-500">{slot.day || 'Mon-Sat'}</span>
                       </td>
-                      {[slot.sem1, slot.sem2, slot.sem3, slot.sem4, slot.sem5, slot.sem6].map((sem, i) => (
-                        <td key={i} className="p-3">
-                          {sem.course ? (
+                      {[slot.sem1, slot.sem2, slot.sem3, slot.sem4, slot.sem5, slot.sem6, slot.sem7, slot.sem8, slot.msc1, slot.msc2, slot.msc3, slot.msc4].map((sem, i) => (
+                        <td key={i} className="p-3 min-w-[120px]">
+                          {sem?.course ? (
                             <div>
                               <span className="font-medium text-slate-800 block">{sem.course}</span>
+                              {sem.time && <span className="text-[10px] text-slate-500 block">{sem.time}</span>}
                               <span className={`inline-block mt-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded ${
                                 sem.type === 'Major' ? 'bg-blue-100 text-blue-900' :
-                                sem.type === 'Minor' ? 'bg-amber-100 text-amber-900' : 'bg-purple-100 text-purple-900'
+                                sem.type === 'Minor' ? 'bg-amber-100 text-amber-900' :
+                                sem.type === 'ITEP' ? 'bg-emerald-100 text-emerald-900' : 'bg-purple-100 text-purple-900'
                               }`}>
                                 {sem.type}
                               </span>
@@ -826,7 +857,7 @@ export const AdminPortalManager: React.FC = () => {
                           )}
                         </td>
                       ))}
-                      <td className="p-3 text-right">
+                      <td className="p-3 text-right z-10 sticky right-0 bg-white group-hover:bg-slate-50">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => {
@@ -1417,73 +1448,105 @@ $s/\$//
             </div>
 
             <form onSubmit={handleSaveRoutine} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Time Slot *</label>
-                  <input
-                    type="text"
-                    required
-                    value={routineForm.timeSlot || ''}
-                    onChange={(e) => setRoutineForm({ ...routineForm, timeSlot: e.target.value })}
-                    placeholder="09:15 - 10:15 AM"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900"
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Days / Schedule</label>
-                  <input
-                    type="text"
+                  <select
                     value={routineForm.day || 'Monday - Saturday'}
                     onChange={(e) => setRoutineForm({ ...routineForm, day: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900"
-                  />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 bg-white"
+                  >
+                    <option value="Monday - Saturday">Monday - Saturday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                  </select>
                 </div>
               </div>
 
-              {(['sem1', 'sem2', 'sem3', 'sem4', 'sem5', 'sem6'] as const).map((semKey, idx) => {
-                const rawForm = routineForm as any;
-                const semData = rawForm[semKey] || {
-                  course: rawForm[semKey === 'sem1' ? 'sem1Major' : semKey === 'sem3' ? 'sem3Major' : semKey === 'sem5' ? 'sem5Major' : ''] || '',
-                  type: idx % 2 === 0 ? 'Major' : 'Minor'
-                };
-                const semLabel = `B.Sc. ${idx + 1}${idx === 0 ? 'st' : idx === 1 ? 'nd' : idx === 2 ? 'rd' : 'th'} Semester`;
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(['sem1', 'sem2', 'sem3', 'sem4', 'sem5', 'sem6', 'sem7', 'sem8', 'msc1', 'msc2', 'msc3', 'msc4'] as const).map((semKey, idx) => {
+                  const rawForm = routineForm as any;
+                  const semData = rawForm[semKey] || {
+                    course: '',
+                    type: idx % 2 === 0 ? 'Major' : 'Minor',
+                    time: ''
+                  };
+                  
+                  let semLabel = '';
+                  if (semKey.startsWith('msc')) {
+                    const mNum = semKey.replace('msc', '');
+                    const suffix = mNum === '1' ? 'st' : mNum === '2' ? 'nd' : mNum === '3' ? 'rd' : 'th';
+                    semLabel = `M.Sc. ${mNum}${suffix} Sem`;
+                  } else {
+                    const bNum = semKey.replace('sem', '');
+                    const suffix = bNum === '1' ? 'st' : bNum === '2' ? 'nd' : bNum === '3' ? 'rd' : 'th';
+                    semLabel = `B.Sc. ${bNum}${suffix} Sem`;
+                  }
 
-                return (
-                  <div key={semKey} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="font-bold text-slate-800">{semLabel}</label>
-                      <select
-                        value={semData.type || 'Major'}
-                        onChange={(e) => {
-                          const val = e.target.value as CourseType;
-                          setRoutineForm({
-                            ...routineForm,
-                            [semKey]: { ...semData, type: val }
-                          });
-                        }}
-                        className="px-2 py-1 bg-white border border-slate-300 rounded font-bold text-[11px] text-blue-900 focus:ring-2 focus:ring-blue-900 outline-none"
-                      >
-                        <option value="Major">Major</option>
-                        <option value="Minor">Minor</option>
-                        <option value="Major/Minor">Major/Minor</option>
-                      </select>
+                  return (
+                    <div key={semKey} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">{semLabel}</label>
+                        <select
+                          value={semData.type || 'Major'}
+                          onChange={(e) => {
+                            const val = e.target.value as CourseType;
+                            setRoutineForm({
+                              ...routineForm,
+                              [semKey]: { ...semData, type: val }
+                            });
+                          }}
+                          className="px-2 py-1 bg-white border border-slate-300 rounded font-bold text-[10px] text-blue-900 focus:ring-2 focus:ring-blue-900 outline-none"
+                        >
+                          <option value="Major">Major</option>
+                          <option value="Minor">Minor</option>
+                          <option value="Major/Minor">Major/Minor</option>
+                          <option value="ITEP">ITEP</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={semData.course || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setRoutineForm({
+                              ...routineForm,
+                              [semKey]: { ...semData, course: val }
+                            });
+                          }}
+                          placeholder="Course title, paper code & teacher name"
+                          className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 font-medium text-[11px] text-slate-800"
+                        />
+                        <select
+                          value={semData.time || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setRoutineForm({
+                              ...routineForm,
+                              [semKey]: { ...semData, time: val }
+                            });
+                          }}
+                          className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 text-[11px] text-slate-800"
+                        >
+                          <option value="">-- Select Time --</option>
+                          <option value="09:00 - 10:00 AM">09:00 - 10:00 AM</option>
+                          <option value="10:00 - 11:00 AM">10:00 - 11:00 AM</option>
+                          <option value="11:00 - 12:00 PM">11:00 - 12:00 PM</option>
+                          <option value="12:00 - 01:00 PM">12:00 - 01:00 PM</option>
+                          <option value="01:00 - 02:00 PM">01:00 - 02:00 PM</option>
+                          <option value="02:00 - 03:00 PM">02:00 - 03:00 PM</option>
+                          <option value="03:00 - 04:00 PM">03:00 - 04:00 PM</option>
+                        </select>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      value={semData.course || ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setRoutineForm({
-                          ...routineForm,
-                          [semKey]: { ...semData, course: val }
-                        });
-                      }}
-                      placeholder="Course title, paper code & teacher name"
-                      className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 font-medium text-slate-800"
-                    />
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
                 <button
