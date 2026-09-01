@@ -5,18 +5,61 @@ import * as pdfjsLib from 'pdfjs-dist';
 // Use CDN for the worker to avoid Vite build issues with standard pdf.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-export async function compressImage(file: File, maxSizeKB: number = 150): Promise<File> {
+export async function compressImage(file: File, maxSizeKB: number = 50): Promise<File> {
   const options = {
     maxSizeMB: maxSizeKB / 1024,
-    maxWidthOrHeight: 1600, 
+    maxWidthOrHeight: 900, 
     useWebWorker: true,
+    initialQuality: 0.75
   };
   
   try {
-    return await imageCompression(file, options);
+    const compressed = await imageCompression(file, options);
+    return compressed;
   } catch (error) {
-    console.error('Image compression error:', error);
-    return file; 
+    console.warn('browser-image-compression worker failed, using canvas compression fallback:', error);
+    return new Promise<File>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 900;
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              0.75
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
   }
 }
 

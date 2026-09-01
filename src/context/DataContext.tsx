@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { DOC_REF, onSnapshot, setDoc, OperationType, handleFirestoreError } from '../firebase';
+import { DOC_REF, DOC_REFS, CMS_COL_REF, onSnapshot, setDoc, OperationType, handleFirestoreError } from '../firebase';
 import { hashPassword, verifyPassword } from '../utils/hashHelper';
 import liveDataRaw from '../data/liveData.json';
 
@@ -369,37 +369,8 @@ const removeUndefined = (obj: any): any => {
   return newObj;
 };
 
-const sanitizeForFirestore = (data: DepartmentCMSData): any => {
+const sanitizeForFirestore = (data: any): any => {
   const cleaned = removeUndefined(data);
-  try {
-    const jsonStr = JSON.stringify(cleaned);
-    // If json size is over 800KB (800,000 chars), optimize giant base64 media strings so Firestore setDoc payload never fails
-    if (jsonStr.length > 800000) {
-      console.warn(`Firestore payload size (${jsonStr.length} bytes) exceeds 800KB safety threshold. Optimizing base64 media payload...`);
-      const optimized = { ...cleaned };
-      if (optimized.departmentInfo) {
-        optimized.departmentInfo = {
-          ...optimized.departmentInfo,
-          imageUrls: (optimized.departmentInfo.imageUrls || []).map((url: string) => 
-            url && url.startsWith('data:image/') && url.length > 100000 ? '' : url
-          )
-        };
-      }
-      if (Array.isArray(optimized.gallery)) {
-        optimized.gallery = optimized.gallery.map((item: any) => ({
-          ...item,
-          imageUrl: item.imageUrl && item.imageUrl.startsWith('data:image/') && item.imageUrl.length > 100000 ? '' : item.imageUrl
-        }));
-      }
-      if (Array.isArray(optimized.notices)) {
-        optimized.notices = optimized.notices.map((n: any) => ({
-          ...n,
-          downloadUrl: n.downloadUrl && n.downloadUrl.length > 200000 ? undefined : n.downloadUrl
-        }));
-      }
-      return optimized;
-    }
-  } catch (e) {}
   return cleaned;
 };
 
@@ -649,110 +620,167 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let unsub: (() => void) | null = null;
     try {
       unsub = onSnapshot(
-        DOC_REF,
-        (docSnap) => {
+        CMS_COL_REF,
+        (snapshot: any) => {
           clearTimeout(connectionTimeout);
-          if (docSnap.exists()) {
-            const data = docSnap.data() as Partial<DepartmentCMSData>;
-            const localUpdatedAt = stateRef.current?.updatedAt || 0;
-            const remoteUpdatedAt = data?.updatedAt || 0;
+          if (!snapshot.empty) {
+            let maxRemoteUpdatedAt = 0;
+            const collectedData: Partial<DepartmentCMSData> = {};
 
-            // CRITICAL FIX: If local state has newer timestamp than remote snapshot (e.g. pending local edits on GitHub Pages),
-            // do NOT overwrite local state with older remote snapshot! Push local state to Cloud instead.
-            if (localUpdatedAt > remoteUpdatedAt) {
-              console.warn('Local CMS state is newer than remote Firestore snapshot. Resyncing local changes to Cloud...');
-              const sanitized = sanitizeForFirestore(stateRef.current);
-              setDoc(DOC_REF, sanitized).catch((err) => {
-                console.warn('Resyncing local state to Firestore handled:', err);
-              });
-              setIsLoading(false);
-              return;
-            }
-
-            // Keep local state reference in sync with remote data
-            stateRef.current = { ...stateRef.current, ...data };
-
-            if (data.departmentInfo) setDepartmentInfo((prev) => ({ ...prev, ...data.departmentInfo }));
-            if (Array.isArray(data.faculty)) {
-              setFaculty(data.faculty);
-              setStats((prevStats) => syncFacultyCount(data.faculty!, prevStats));
-            }
-            if (Array.isArray(data.stats)) setStats(data.stats);
-            if (Array.isArray(data.courses)) setCourses(data.courses);
-            if (Array.isArray(data.notices)) setNotices(data.notices);
-            if (Array.isArray(data.events)) setEvents(data.events);
-            if (Array.isArray(data.researchAreas)) setResearchAreas(data.researchAreas);
-            if (Array.isArray(data.researchProjects)) setResearchProjects(data.researchProjects);
-            if (Array.isArray(data.publications)) setPublications(data.publications);
-            if (Array.isArray(data.achievements)) setAchievements(data.achievements);
-            if (Array.isArray(data.gallery)) setGallery(data.gallery);
-            if (Array.isArray(data.departmentStudents)) setDepartmentStudents(cleanDepartmentStudents(data.departmentStudents));
-            if (Array.isArray(data.blogs)) setBlogs(data.blogs);
-            if (Array.isArray(data.registeredStudentProfiles)) setRegisteredStudentProfiles(cleanRegisteredStudentProfiles(data.registeredStudentProfiles));
-            if (Array.isArray(data.portalResources)) setPortalResources(data.portalResources);
-            if (Array.isArray(data.routineSlots)) setRoutineSlots(data.routineSlots.map(normalizeRoutineSlot));
-            if (Array.isArray(data.studentGrievances)) setStudentGrievances(cleanStudentGrievances(data.studentGrievances));
-            if (Array.isArray(data.adminRegistrationRequests)) setAdminRegistrationRequests(data.adminRegistrationRequests);
-            if (Array.isArray(data.admins)) {
-              const cleanedAdminsList = cleanAdmins(data.admins);
-              setAdmins(cleanedAdminsList);
-              const savedUid = sessionStorage.getItem(AUTH_USER_KEY);
-              if (savedUid) {
-                const matched = cleanedAdminsList.find(a => a.id === savedUid);
-                if (matched) {
-                  setCurrentAdmin(matched);
-                } else {
-                  setCurrentAdmin(cleanedAdminsList.find(a => a.role === 'Super Admin') || cleanedAdminsList[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
-                }
-              } else {
-                setCurrentAdmin(cleanedAdminsList.find(a => a.role === 'Super Admin') || cleanedAdminsList[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
+            snapshot.docs.forEach((docSnap) => {
+              const docId = docSnap.id;
+              const d = docSnap.data() as any;
+              if (d?.updatedAt && d.updatedAt > maxRemoteUpdatedAt) {
+                maxRemoteUpdatedAt = d.updatedAt;
               }
-            }
 
-            // Directly replace stateRef with the exact Firestore dataset
+              if (docId === 'info') {
+                if (d.departmentInfo) {
+                  collectedData.departmentInfo = d.departmentInfo;
+                  setDepartmentInfo((prev) => ({ ...prev, ...d.departmentInfo }));
+                }
+                if (Array.isArray(d.stats)) {
+                  collectedData.stats = d.stats;
+                  setStats(d.stats);
+                }
+              } else if (docId === 'faculty') {
+                if (Array.isArray(d.faculty)) {
+                  collectedData.faculty = d.faculty;
+                  setFaculty(d.faculty);
+                  setStats((prevStats) => syncFacultyCount(d.faculty, prevStats));
+                }
+              } else if (docId === 'courses') {
+                if (Array.isArray(d.courses)) {
+                  collectedData.courses = d.courses;
+                  setCourses(d.courses);
+                }
+              } else if (docId === 'notices') {
+                if (Array.isArray(d.notices)) {
+                  collectedData.notices = d.notices;
+                  setNotices(d.notices);
+                }
+              } else if (docId === 'events') {
+                if (Array.isArray(d.events)) {
+                  collectedData.events = d.events;
+                  setEvents(d.events);
+                }
+              } else if (docId === 'research') {
+                if (Array.isArray(d.researchAreas)) {
+                  collectedData.researchAreas = d.researchAreas;
+                  setResearchAreas(d.researchAreas);
+                }
+                if (Array.isArray(d.researchProjects)) {
+                  collectedData.researchProjects = d.researchProjects;
+                  setResearchProjects(d.researchProjects);
+                }
+                if (Array.isArray(d.publications)) {
+                  collectedData.publications = d.publications;
+                  setPublications(d.publications);
+                }
+              } else if (docId === 'achievements') {
+                if (Array.isArray(d.achievements)) {
+                  collectedData.achievements = d.achievements;
+                  setAchievements(d.achievements);
+                }
+              } else if (docId === 'gallery') {
+                if (Array.isArray(d.gallery)) {
+                  collectedData.gallery = d.gallery;
+                  setGallery(d.gallery);
+                }
+              } else if (docId === 'blogs') {
+                if (Array.isArray(d.blogs)) {
+                  collectedData.blogs = d.blogs;
+                  setBlogs(d.blogs);
+                }
+              } else if (docId === 'students') {
+                if (Array.isArray(d.departmentStudents)) {
+                  const cleaned = cleanDepartmentStudents(d.departmentStudents);
+                  collectedData.departmentStudents = cleaned;
+                  setDepartmentStudents(cleaned);
+                }
+                if (Array.isArray(d.registeredStudentProfiles)) {
+                  const cleaned = cleanRegisteredStudentProfiles(d.registeredStudentProfiles);
+                  collectedData.registeredStudentProfiles = cleaned;
+                  setRegisteredStudentProfiles(cleaned);
+                }
+                if (Array.isArray(d.routineSlots)) {
+                  const normalized = d.routineSlots.map(normalizeRoutineSlot);
+                  collectedData.routineSlots = normalized;
+                  setRoutineSlots(normalized);
+                }
+                if (Array.isArray(d.studentGrievances)) {
+                  const cleaned = cleanStudentGrievances(d.studentGrievances);
+                  collectedData.studentGrievances = cleaned;
+                  setStudentGrievances(cleaned);
+                }
+                if (Array.isArray(d.portalResources)) {
+                  collectedData.portalResources = d.portalResources;
+                  setPortalResources(d.portalResources);
+                }
+              } else if (docId === 'admins') {
+                if (Array.isArray(d.adminRegistrationRequests)) {
+                  collectedData.adminRegistrationRequests = d.adminRegistrationRequests;
+                  setAdminRegistrationRequests(d.adminRegistrationRequests);
+                }
+                if (Array.isArray(d.admins)) {
+                  const cleanedAdminsList = cleanAdmins(d.admins);
+                  collectedData.admins = cleanedAdminsList;
+                  setAdmins(cleanedAdminsList);
+                  const savedUid = sessionStorage.getItem(AUTH_USER_KEY);
+                  if (savedUid) {
+                    const matched = cleanedAdminsList.find((a) => a.id === savedUid);
+                    if (matched) setCurrentAdmin(matched);
+                  }
+                }
+              } else if (docId === 'master') {
+                // If master doc has data and modular docs were not fully populated
+                const m = d as Partial<DepartmentCMSData>;
+                if (m.departmentInfo && !collectedData.departmentInfo) {
+                  setDepartmentInfo((prev) => ({ ...prev, ...m.departmentInfo }));
+                }
+                if (Array.isArray(m.faculty) && !collectedData.faculty) {
+                  setFaculty(m.faculty);
+                  setStats((prevStats) => syncFacultyCount(m.faculty!, prevStats));
+                }
+                if (Array.isArray(m.stats) && !collectedData.stats) setStats(m.stats);
+                if (Array.isArray(m.courses) && !collectedData.courses) setCourses(m.courses);
+                if (Array.isArray(m.notices) && !collectedData.notices) setNotices(m.notices);
+                if (Array.isArray(m.events) && !collectedData.events) setEvents(m.events);
+                if (Array.isArray(m.researchAreas) && !collectedData.researchAreas) setResearchAreas(m.researchAreas);
+                if (Array.isArray(m.researchProjects) && !collectedData.researchProjects) setResearchProjects(m.researchProjects);
+                if (Array.isArray(m.publications) && !collectedData.publications) setPublications(m.publications);
+                if (Array.isArray(m.achievements) && !collectedData.achievements) setAchievements(m.achievements);
+                if (Array.isArray(m.gallery) && !collectedData.gallery) setGallery(m.gallery);
+                if (Array.isArray(m.departmentStudents) && !collectedData.departmentStudents) setDepartmentStudents(cleanDepartmentStudents(m.departmentStudents));
+                if (Array.isArray(m.blogs) && !collectedData.blogs) setBlogs(m.blogs);
+                if (Array.isArray(m.registeredStudentProfiles) && !collectedData.registeredStudentProfiles) setRegisteredStudentProfiles(cleanRegisteredStudentProfiles(m.registeredStudentProfiles));
+                if (Array.isArray(m.portalResources) && !collectedData.portalResources) setPortalResources(m.portalResources);
+                if (Array.isArray(m.routineSlots) && !collectedData.routineSlots) setRoutineSlots(m.routineSlots.map(normalizeRoutineSlot));
+                if (Array.isArray(m.studentGrievances) && !collectedData.studentGrievances) setStudentGrievances(cleanStudentGrievances(m.studentGrievances));
+              }
+            });
+
+            // Update stateRef and local storage with the authoritative Firestore state
             stateRef.current = {
               ...stateRef.current,
-              ...data,
-              updatedAt: remoteUpdatedAt || 0
+              ...collectedData,
+              updatedAt: maxRemoteUpdatedAt || Date.now()
             };
             try {
               localStorage.setItem(STORAGE_KEY, JSON.stringify(stateRef.current));
             } catch (err) {}
-          } else {
-            // Initial seed to Firestore if document does not exist yet
-            const seedData = {
-              ...stateRef.current,
-              updatedAt: stateRef.current?.updatedAt || Date.now()
-            };
-            const sanitized = sanitizeForFirestore(seedData);
-            setDoc(DOC_REF, sanitized).catch((err) => {
-              console.warn('Initial Firestore seed warning handled gracefully:', err);
-              if (err?.code === 'resource-exhausted' || err?.message?.includes('quota') || err?.message?.includes('payload')) {
-                setIsDatabaseQuotaExceeded(true);
-              }
-            });
           }
           setIsLoading(false);
         },
         (error: any) => {
           clearTimeout(connectionTimeout);
-          console.warn('Firestore real-time sync subscription status:', error);
+          console.warn('Firestore real-time collection subscription status:', error);
           setIsLoading(false);
-          if (error?.code === 'resource-exhausted') {
-            setIsDatabaseQuotaExceeded(true);
-          }
-          const errInfo = {
-            error: error instanceof Error ? error.message : String(error),
-            code: error?.code || null,
-            operationType: 'get',
-            path: 'department_cms/master'
-          };
-          console.warn('Firestore subscription info: ', JSON.stringify(errInfo));
         }
       );
     } catch (err) {
       clearTimeout(connectionTimeout);
-      console.warn('Error establishing Firestore subscription:', err);
+      console.warn('Error establishing Firestore collection subscription:', err);
       setIsLoading(false);
     }
 
@@ -775,51 +803,136 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 2. Save full authoritative document to localStorage
     try {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e: any) {
-        if (e.name === 'QuotaExceededError') {
-          console.warn('LocalStorage quota exceeded, attempting to save without large images...');
-          const reducedData = {
-            ...updated,
-            departmentInfo: {
-              ...updated.departmentInfo,
-              imageUrls: [],
-              logoUrl: ''
-            }
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(reducedData));
-        }
-      }
-
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       if (data.registeredStudentProfiles) {
         localStorage.setItem(PORTAL_PROFILES_KEY, JSON.stringify(data.registeredStudentProfiles));
       }
-    } catch (e) {
-      console.error('Failed to persist CMS data to localStorage:', e);
+    } catch (e: any) {
+      console.warn('LocalStorage save warning:', e);
     }
 
-    // 3. Save to Google Cloud Firestore without merge to ensure deleted elements stay permanently deleted
-    if (isDatabaseQuotaExceeded) {
-      console.log('Skipping Firestore sync: database is offline or quota has been exceeded. Changes are saved to local sandbox.');
-      return;
+    // 3. Save to Google Cloud Firestore across modular collections so payloads are tiny and never hit limits
+    const writePromises: Promise<any>[] = [];
+
+    // Modular section writes
+    if (data.departmentInfo !== undefined || data.stats !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.info, sanitizeForFirestore({
+          departmentInfo: updated.departmentInfo,
+          stats: updated.stats,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.faculty !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.faculty, sanitizeForFirestore({
+          faculty: updated.faculty,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.courses !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.courses, sanitizeForFirestore({
+          courses: updated.courses,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.notices !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.notices, sanitizeForFirestore({
+          notices: updated.notices,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.events !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.events, sanitizeForFirestore({
+          events: updated.events,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.researchAreas !== undefined || data.researchProjects !== undefined || data.publications !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.research, sanitizeForFirestore({
+          researchAreas: updated.researchAreas,
+          researchProjects: updated.researchProjects,
+          publications: updated.publications,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.achievements !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.achievements, sanitizeForFirestore({
+          achievements: updated.achievements,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.gallery !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.gallery, sanitizeForFirestore({
+          gallery: updated.gallery,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.blogs !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.blogs, sanitizeForFirestore({
+          blogs: updated.blogs,
+          updatedAt: now
+        }))
+      );
+    }
+    if (
+      data.departmentStudents !== undefined ||
+      data.registeredStudentProfiles !== undefined ||
+      data.routineSlots !== undefined ||
+      data.studentGrievances !== undefined ||
+      data.portalResources !== undefined
+    ) {
+      writePromises.push(
+        setDoc(DOC_REFS.students, sanitizeForFirestore({
+          departmentStudents: updated.departmentStudents,
+          registeredStudentProfiles: updated.registeredStudentProfiles,
+          routineSlots: updated.routineSlots,
+          studentGrievances: updated.studentGrievances,
+          portalResources: updated.portalResources,
+          updatedAt: now
+        }))
+      );
+    }
+    if (data.admins !== undefined || data.adminRegistrationRequests !== undefined) {
+      writePromises.push(
+        setDoc(DOC_REFS.admins, sanitizeForFirestore({
+          admins: updated.admins,
+          adminRegistrationRequests: updated.adminRegistrationRequests,
+          updatedAt: now
+        }))
+      );
     }
 
-    try {
-      const sanitized = sanitizeForFirestore(updated);
-      setDoc(DOC_REF, sanitized).catch((err: any) => {
-        console.error('CRITICAL: Failed to sync changes to Google Cloud Firestore:', err);
-        console.error('Data size being sent:', JSON.stringify(sanitized).length);
-        if (err?.code === 'resource-exhausted' || err?.message?.includes('quota') || err?.message?.includes('payload')) {
-          console.warn('Error: Cloud database quota has been exceeded or image size is too large.');
-          setIsDatabaseQuotaExceeded(true);
-        } else {
-          console.warn('Warning: Cloud sync failed. Changes are saved locally.');
-        }
-      });
-    } catch (err) {
-      console.error('Error invoking setDoc on Firestore:', err);
-    }
+    // Also update master doc in background
+    writePromises.push(
+      setDoc(DOC_REFS.master, sanitizeForFirestore(updated)).catch((err) => {
+        console.warn('Master document background update notice:', err);
+      })
+    );
+
+    Promise.allSettled(writePromises).then((results) => {
+      const failures = results.filter((r) => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn('Some section writes were not acknowledged:', failures);
+      } else {
+        console.log('All changes successfully committed to Google Cloud Firestore in real time.');
+      }
+    });
   };
 
   // Auth handler

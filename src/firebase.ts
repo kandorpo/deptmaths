@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { initializeFirestore, getFirestore, doc, onSnapshot, setDoc, getDoc, getDocFromServer, setLogLevel } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, doc, onSnapshot, setDoc, getDoc, getDocFromServer, collection, getDocs, setLogLevel } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 export const app = initializeApp(firebaseConfig);
@@ -112,5 +112,24 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-export { doc, onSnapshot, setDoc, getDoc };
+export { doc, onSnapshot, setDoc, getDoc, collection, getDocs };
+
+export const CMS_COLLECTION_NAME = 'department_cms';
+export const CMS_COL_REF = collection(db, CMS_COLLECTION_NAME);
+
+// Modular Document References for reliable multi-device sync
+export const DOC_REFS = {
+  master: doc(db, CMS_COLLECTION_NAME, 'master'),
+  info: doc(db, CMS_COLLECTION_NAME, 'info'),
+  faculty: doc(db, CMS_COLLECTION_NAME, 'faculty'),
+  courses: doc(db, CMS_COLLECTION_NAME, 'courses'),
+  notices: doc(db, CMS_COLLECTION_NAME, 'notices'),
+  events: doc(db, CMS_COLLECTION_NAME, 'events'),
+  research: doc(db, CMS_COLLECTION_NAME, 'research'),
+  achievements: doc(db, CMS_COLLECTION_NAME, 'achievements'),
+  gallery: doc(db, CMS_COLLECTION_NAME, 'gallery'),
+  blogs: doc(db, CMS_COLLECTION_NAME, 'blogs'),
+  students: doc(db, CMS_COLLECTION_NAME, 'students'),
+  admins: doc(db, CMS_COLLECTION_NAME, 'admins'),
+};
 

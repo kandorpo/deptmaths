@@ -15,7 +15,7 @@ export function processLogoImage(
   callback: (processedDataUrl: string) => void,
   options: ProcessLogoOptions = {}
 ): void {
-  const maxDim = options.maxDim || 360;
+  const maxDim = options.maxDim || 280;
   const tolerance = options.colorTolerance || 32;
 
   const handleLoadedImage = (img: HTMLImageElement) => {
