@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { hashPassword } from '../utils/hashHelper';
 import { processLogoImage } from '../utils/imageHelper';
+import { compressFile } from '../utils/fileCompressor';
 import {
   X,
   Lock,
@@ -274,63 +275,29 @@ export const AdminCMSModal: React.FC = () => {
     setTimeout(() => setStatusMsg(null), 3000);
   };
 
-  const compressAndReadImage = (
+  const compressAndReadFile = async (
     file: File, 
     callback: (dataUrl: string) => void,
     options?: { maxDim?: number; isLogo?: boolean }
   ) => {
-    if (options?.isLogo) {
+    if (options?.isLogo && file.type.startsWith('image/')) {
       processLogoImage(file, callback, { maxDim: options.maxDim || 360, removeBackground: true });
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const src = e.target?.result as string;
-      if (!src) return;
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = options?.maxDim || (options?.isLogo ? 360 : 800);
-        let width = img.width;
-        let height = img.height;
-        if (width > height) {
-          if (width > maxDim) {
-            height = Math.round(height * (maxDim / width));
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width = Math.round(width * (maxDim / height));
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          const isTransparent = file.type === 'image/png' || file.type === 'image/svg+xml' || file.type === 'image/webp' || options?.isLogo;
-          if (!isTransparent) {
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, width, height);
-          } else {
-            ctx.clearRect(0, 0, width, height);
-          }
-          ctx.drawImage(img, 0, 0, width, height);
-          const outputFormat = isTransparent ? 'image/png' : 'image/jpeg';
-          const quality = isTransparent ? undefined : 0.85;
-          const compressed = canvas.toDataURL(outputFormat, quality);
-          callback(compressed);
-        } else {
-          callback(src);
-        }
+    try {
+      showStatus(`Processing ${file.name}...`);
+      const compressedFile = await compressFile(file, 150);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const src = e.target?.result as string;
+        if (src) callback(src);
       };
-      img.onerror = () => callback(src);
-      img.src = src;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
+    } catch (err) {
+      console.error(err);
+      showStatus('File processing failed.');
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -513,7 +480,7 @@ export const AdminCMSModal: React.FC = () => {
 
   const handleFacultyImageUpload = (file: File | undefined) => {
     if (!file || !editingFaculty) return;
-    compressAndReadImage(file, (dataUrl) => {
+    compressAndReadFile(file, (dataUrl) => {
       setEditingFaculty({ ...editingFaculty, image: dataUrl });
       showStatus(`${file.name} uploaded and set as profile picture.`);
     });
@@ -523,7 +490,7 @@ export const AdminCMSModal: React.FC = () => {
     if (!file) return;
 
     const isLogo = imageKey === 'logoUrl';
-    compressAndReadImage(file, (dataUrl) => {
+    compressAndReadFile(file, (dataUrl) => {
       if (imageKey === 'imageUrls') {
         const updatedImages = [...(generalForm.imageUrls || []), dataUrl];
         const updatedForm = { ...generalForm, imageUrls: updatedImages };
@@ -788,7 +755,7 @@ export const AdminCMSModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. admin or hod@dudhnoicollege.ac.in"
+                    placeholder="Enter Username or Admin Email"
                     value={forgotUsername}
                     onChange={(e) => setForgotUsername(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-blue-900 outline-none transition-all"
@@ -866,7 +833,7 @@ export const AdminCMSModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Dr. Barnali Kalita"
+                    placeholder="Enter Full Display Name"
                     value={regFullName}
                     onChange={(e) => setRegFullName(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-blue-900 outline-none transition-all"
@@ -880,7 +847,7 @@ export const AdminCMSModal: React.FC = () => {
                   <input
                     type="email"
                     required
-                    placeholder="e.g. barnali@dudhnoicollege.ac.in"
+                    placeholder="Enter Official Email Address"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-blue-900 outline-none transition-all"
@@ -909,7 +876,7 @@ export const AdminCMSModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. barnali_math"
+                    placeholder="Enter Desired Username"
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value.replace(/\s+/g, ''))}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-blue-900 outline-none transition-all font-mono"
@@ -1513,7 +1480,7 @@ export const AdminCMSModal: React.FC = () => {
                         e.preventDefault();
                         const file = e.dataTransfer.files?.[0];
                         if (file && file.type.startsWith('image/')) {
-                          compressAndReadImage(file, (dataUrl) => {
+                          compressAndReadFile(file, (dataUrl) => {
                             setGeneralForm({ ...generalForm, aboutImageUrl: dataUrl });
                             showStatus('About feature image uploaded successfully from device.');
                           });
@@ -1527,7 +1494,7 @@ export const AdminCMSModal: React.FC = () => {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            compressAndReadImage(file, (dataUrl) => {
+                            compressAndReadFile(file, (dataUrl) => {
                               setGeneralForm({ ...generalForm, aboutImageUrl: dataUrl });
                               showStatus('About feature image uploaded successfully from device.');
                             });
@@ -1807,22 +1774,21 @@ export const AdminCMSModal: React.FC = () => {
                       onClick={() => {
                         const newFac: FacultyMember = {
                           id: `faculty-${Date.now()}`,
-                          name: 'New Faculty Member',
+                          name: '',
                           designation: 'Assistant Professor',
-                          qualification: 'M.Sc., Ph.D. (Gauhati University)',
-                          specialization: 'Pure Mathematics',
-                          email: 'faculty@dudhnoicollege.ac.in',
-                          phone: '+91 94350 00000',
-                          roomNo: 'Room 205, Science Block',
+                          qualification: '',
+                          specialization: '',
+                          email: '',
+                          phone: '',
+                          roomNo: '',
                           image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-                          bio: 'Dedicated educator and researcher in the department.',
-                          researchInterests: ['Algebra', 'Analysis'],
+                          bio: '',
+                          researchInterests: [],
                           recentPublications: [],
-                          coursesTaught: ['Calculus', 'Real Analysis']
+                          coursesTaught: []
                         };
-                        addFaculty(newFac);
                         setEditingFaculty(newFac);
-                        showStatus('New faculty entry added. Edit details below.');
+                        showStatus('Configure new faculty details below and click Save.');
                       }}
                       className="px-3.5 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
@@ -2092,9 +2058,15 @@ export const AdminCMSModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            updateFaculty(editingFaculty);
+                            const exists = faculty.some((f) => f.id === editingFaculty.id);
+                            if (exists) {
+                              updateFaculty(editingFaculty);
+                              showStatus('Faculty profile updated successfully.');
+                            } else {
+                              addFaculty(editingFaculty);
+                              showStatus('New faculty entry added successfully.');
+                            }
                             setEditingFaculty(null);
-                            showStatus('Faculty profile updated successfully.');
                           }}
                           className="px-4 py-2 bg-blue-900 text-white font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
                         >
@@ -2194,9 +2166,8 @@ export const AdminCMSModal: React.FC = () => {
                           isUrgent: false,
                           description: 'Important circular regarding department academic schedules and classes.'
                         };
-                        addNotice(newNotice);
                         setEditingNotice(newNotice);
-                        showStatus('New notice created. Edit details below.');
+                        showStatus('Configure new notice details below and click Save.');
                       }}
                       className="px-3.5 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
@@ -2318,21 +2289,14 @@ export const AdminCMSModal: React.FC = () => {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 500 * 1024) {
-                                  alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct document URL.`);
-                                  return;
-                                }
-                                const reader = new FileReader();
-                                reader.onload = (ev) => {
-                                  const dataUrl = ev.target?.result as string;
+                                compressAndReadFile(file, (dataUrl) => {
                                   setEditingNotice({
                                     ...editingNotice,
                                     downloadUrl: dataUrl,
-                                    fileSize: `${(file.size / 1024).toFixed(1)} KB (PDF)`
+                                    fileSize: 'Compressed PDF'
                                   });
-                                  showStatus(`${file.name} uploaded successfully.`);
-                                };
-                                reader.readAsDataURL(file);
+                                  showStatus(`${file.name} compressed & uploaded.`);
+                                });
                               }
                             }}
                             className="hidden"
@@ -2375,9 +2339,15 @@ export const AdminCMSModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            updateNotice(editingNotice);
+                            const exists = notices.some((n) => n.id === editingNotice.id);
+                            if (exists) {
+                              updateNotice(editingNotice);
+                              showStatus('Notice updated successfully.');
+                            } else {
+                              addNotice(editingNotice);
+                              showStatus('New notice saved successfully.');
+                            }
                             setEditingNotice(null);
-                            showStatus('Notice saved successfully.');
                           }}
                           className="px-4 py-2 bg-blue-900 text-white font-bold rounded-xl cursor-pointer"
                         >
@@ -2457,9 +2427,8 @@ export const AdminCMSModal: React.FC = () => {
                           isUpcoming: true,
                           registrationOpen: true
                         };
-                        addEvent(newEvent);
                         setEditingEvent(newEvent);
-                        showStatus('New event added. Edit details below.');
+                        showStatus('Configure new event details below and click Save.');
                       }}
                       className="px-3.5 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
@@ -2562,20 +2531,13 @@ export const AdminCMSModal: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  if (file.size > 500 * 1024) {
-                                    alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct document URL.`);
-                                    return;
-                                  }
-                                  const reader = new FileReader();
-                                  reader.onload = (ev) => {
-                                    const dataUrl = ev.target?.result as string;
+                                  compressAndReadFile(file, (dataUrl) => {
                                     setEditingEvent({
                                       ...editingEvent,
                                       downloadUrl: dataUrl
                                     });
-                                    showStatus(`${file.name} uploaded successfully.`);
-                                  };
-                                  reader.readAsDataURL(file);
+                                    showStatus(`${file.name} compressed & uploaded.`);
+                                  });
                                 }
                               }}
                               className="hidden"
@@ -2595,9 +2557,15 @@ export const AdminCMSModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            updateEvent(editingEvent);
+                            const exists = events.some((e) => e.id === editingEvent.id);
+                            if (exists) {
+                              updateEvent(editingEvent);
+                              showStatus('Event updated successfully.');
+                            } else {
+                              addEvent(editingEvent);
+                              showStatus('New event added successfully.');
+                            }
                             setEditingEvent(null);
-                            showStatus('Event updated successfully.');
                           }}
                           className="px-4 py-2 bg-blue-900 text-white font-bold rounded-xl cursor-pointer"
                         >
@@ -2826,20 +2794,13 @@ export const AdminCMSModal: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  if (file.size > 500 * 1024) {
-                                    alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct document URL.`);
-                                    return;
-                                  }
-                                  const reader = new FileReader();
-                                  reader.onload = (ev) => {
-                                    const dataUrl = ev.target?.result as string;
+                                  compressAndReadFile(file, (dataUrl) => {
                                     setEditingCourse({
                                       ...editingCourse,
                                       downloadUrl: dataUrl
                                     });
-                                    showStatus(`${file.name} uploaded successfully.`);
-                                  };
-                                  reader.readAsDataURL(file);
+                                    showStatus(`${file.name} compressed & uploaded.`);
+                                  });
                                 }
                               }}
                               className="hidden"
@@ -3128,20 +3089,13 @@ export const AdminCMSModal: React.FC = () => {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 500 * 1024) {
-                                  alert(`File size (${(file.size / 1024).toFixed(0)} KB) exceeds the 500 KB limit for database storage. Please compress the PDF or paste a direct Google Drive link.`);
-                                  return;
-                                }
-                                const reader = new FileReader();
-                                reader.onload = (ev) => {
-                                  const dataUrl = ev.target?.result as string;
+                                compressAndReadFile(file, (dataUrl) => {
                                   setEditingPublication({
                                     ...editingPublication,
                                     pdfUrl: dataUrl
                                   });
-                                  showStatus(`${file.name} uploaded successfully.`);
-                                };
-                                reader.readAsDataURL(file);
+                                  showStatus(`${file.name} compressed & uploaded.`);
+                                });
                               }
                             }}
                             className="hidden"
@@ -3341,7 +3295,7 @@ export const AdminCMSModal: React.FC = () => {
                               e.preventDefault();
                               const file = e.dataTransfer.files?.[0];
                               if (file && file.type.startsWith('image/')) {
-                                compressAndReadImage(file, (dataUrl) => {
+                                compressAndReadFile(file, (dataUrl) => {
                                   setEditingGallery({ ...editingGallery, image: dataUrl });
                                   showStatus('Image uploaded successfully from device.');
                                 });
@@ -3355,7 +3309,7 @@ export const AdminCMSModal: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  compressAndReadImage(file, (dataUrl) => {
+                                  compressAndReadFile(file, (dataUrl) => {
                                     setEditingGallery({ ...editingGallery, image: dataUrl });
                                     showStatus('Image uploaded successfully from device.');
                                   });
@@ -4250,7 +4204,7 @@ export const AdminCMSModal: React.FC = () => {
                             value={adminFormState.fullName || ''}
                             onChange={(e) => setAdminFormState({ ...adminFormState, fullName: e.target.value })}
                             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-900"
-                            placeholder="e.g. Dr. Jane Doe"
+                            placeholder="Enter Full Display Name"
                           />
                         </div>
 
@@ -4261,7 +4215,7 @@ export const AdminCMSModal: React.FC = () => {
                             value={adminFormState.username || ''}
                             onChange={(e) => setAdminFormState({ ...adminFormState, username: e.target.value.replace(/\s+/g, '') })}
                             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-900 font-mono"
-                            placeholder="e.g. jane_doe"
+                            placeholder="Enter Username"
                             disabled={!!editingAdmin}
                           />
                         </div>
@@ -4273,7 +4227,7 @@ export const AdminCMSModal: React.FC = () => {
                             value={adminFormState.email || ''}
                             onChange={(e) => setAdminFormState({ ...adminFormState, email: e.target.value.trim() })}
                             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-900"
-                            placeholder="e.g. jane@dudhnoicollege.ac.in"
+                            placeholder="Enter Official Email"
                           />
                         </div>
 

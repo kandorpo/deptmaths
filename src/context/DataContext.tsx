@@ -269,24 +269,6 @@ const DEFAULT_ADMIN_ACCOUNTS: AdminAccount[] = [
     role: 'Super Admin',
     passwordHash: 'fffb66db81f4495f2d7f94dd1a74601fcaf0e18c79c05afba28b16dfc452cf39',
     status: 'Active'
-  },
-  {
-    id: 'admin-hod',
-    username: 'math_hod',
-    email: 'hod.math@dudhnoicollege.ac.in',
-    fullName: 'Dr. Head of Department',
-    role: 'Department Admin',
-    passwordHash: 'fffb66db81f4495f2d7f94dd1a74601fcaf0e18c79c05afba28b16dfc452cf39',
-    status: 'Active'
-  },
-  {
-    id: 'admin-faculty1',
-    username: 'math_faculty',
-    email: 'faculty.math@dudhnoicollege.ac.in',
-    fullName: 'Prof. Mathematics Admin',
-    role: 'Department Admin',
-    passwordHash: 'fffb66db81f4495f2d7f94dd1a74601fcaf0e18c79c05afba28b16dfc452cf39',
-    status: 'Active'
   }
 ];
 
@@ -340,6 +322,34 @@ const PRE_REGISTERED_STUDENT_IDS = new Set([
 const cleanDepartmentStudents = (students: DepartmentStudent[]): DepartmentStudent[] => {
   if (!Array.isArray(students)) return [];
   return students.filter((s) => s && s.id && !PRE_REGISTERED_STUDENT_IDS.has(s.id));
+};
+
+const PRE_REGISTERED_PROFILE_IDS = new Set([
+  'stu-101', 'stu-102'
+]);
+
+const cleanRegisteredStudentProfiles = (profiles: StudentProfile[]): StudentProfile[] => {
+  if (!Array.isArray(profiles)) return [];
+  return profiles.filter((p) => p && p.id && !PRE_REGISTERED_PROFILE_IDS.has(p.id));
+};
+
+const PRE_GRIEVANCE_IDS = new Set([
+  'grievance-1', 'grievance-2'
+]);
+
+const cleanStudentGrievances = (grievances: StudentGrievance[]): StudentGrievance[] => {
+  if (!Array.isArray(grievances)) return [];
+  return grievances.filter((g) => g && g.id && !PRE_GRIEVANCE_IDS.has(g.id));
+};
+
+const PRE_REGISTERED_ADMIN_IDS = new Set([
+  'admin-hod', 'admin-dept', 'admin-faculty1'
+]);
+
+const cleanAdmins = (adminList: AdminAccount[]): AdminAccount[] => {
+  if (!Array.isArray(adminList) || adminList.length === 0) return DEFAULT_ADMIN_ACCOUNTS;
+  const filtered = adminList.filter((a) => a && a.id && !PRE_REGISTERED_ADMIN_IDS.has(a.id));
+  return filtered.length > 0 ? filtered : DEFAULT_ADMIN_ACCOUNTS;
 };
 
 const removeUndefined = (obj: any): any => {
@@ -457,7 +467,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     Array.isArray(initialCached?.blogs) ? initialCached.blogs : (liveData.blogs || DEFAULT_BLOG_POSTS)
   );
   const [registeredStudentProfiles, setRegisteredStudentProfiles] = useState<StudentProfile[]>(() =>
-    Array.isArray(initialCached?.registeredStudentProfiles) ? initialCached.registeredStudentProfiles : (liveData.registeredStudentProfiles || DEFAULT_STUDENT_PROFILES)
+    Array.isArray(initialCached?.registeredStudentProfiles) ? cleanRegisteredStudentProfiles(initialCached.registeredStudentProfiles) : (liveData.registeredStudentProfiles ? cleanRegisteredStudentProfiles(liveData.registeredStudentProfiles) : DEFAULT_STUDENT_PROFILES)
   );
   const [portalResources, setPortalResources] = useState<StudentResource[]>(() =>
     Array.isArray(initialCached?.portalResources) ? initialCached.portalResources : (liveData.portalResources || STUDENT_RESOURCES)
@@ -466,7 +476,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     Array.isArray(initialCached?.routineSlots) ? initialCached.routineSlots.map(normalizeRoutineSlot) : (liveData.routineSlots ? liveData.routineSlots.map(normalizeRoutineSlot) : DEFAULT_ROUTINE_SLOTS.map(normalizeRoutineSlot))
   );
   const [studentGrievances, setStudentGrievances] = useState<StudentGrievance[]>(() =>
-    Array.isArray(initialCached?.studentGrievances) ? initialCached.studentGrievances : (liveData.studentGrievances || DEFAULT_GRIEVANCES)
+    Array.isArray(initialCached?.studentGrievances) ? cleanStudentGrievances(initialCached.studentGrievances) : (liveData.studentGrievances ? cleanStudentGrievances(liveData.studentGrievances) : DEFAULT_GRIEVANCES)
   );
 
   // Admin UI State
@@ -480,18 +490,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   const [isLoading, setIsLoading] = useState(false);
   const [admins, setAdmins] = useState<AdminAccount[]>(() =>
-    Array.isArray(initialCached?.admins) ? initialCached.admins : (liveData.admins || DEFAULT_ADMIN_ACCOUNTS)
+    Array.isArray(initialCached?.admins) ? cleanAdmins(initialCached.admins) : (liveData.admins ? cleanAdmins(liveData.admins) : DEFAULT_ADMIN_ACCOUNTS)
   );
   const [currentAdmin, setCurrentAdmin] = useState<AdminAccount | null>(() => {
     try {
       const auth = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(AUTH_KEY) : null;
       if (auth === 'true') {
         const savedUid = sessionStorage.getItem(AUTH_USER_KEY);
-        const adminList = Array.isArray(initialCached?.admins) ? initialCached.admins : (liveData.admins || DEFAULT_ADMIN_ACCOUNTS);
+        const adminList = Array.isArray(initialCached?.admins) ? cleanAdmins(initialCached.admins) : (liveData.admins ? cleanAdmins(liveData.admins) : DEFAULT_ADMIN_ACCOUNTS);
         if (savedUid) {
-          return adminList.find(a => a.id === savedUid) || adminList[0] || (liveData.admins?.[0]) || DEFAULT_ADMIN_ACCOUNTS[0];
+          return adminList.find(a => a.id === savedUid) || adminList[0] || DEFAULT_ADMIN_ACCOUNTS[0];
         }
-        return adminList[0] || (liveData.admins?.[0]) || DEFAULT_ADMIN_ACCOUNTS[0];
+        return adminList[0] || DEFAULT_ADMIN_ACCOUNTS[0];
       }
     } catch {}
     return null;
@@ -597,12 +607,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (Array.isArray(parsed.gallery)) setGallery(parsed.gallery);
         if (Array.isArray(parsed.departmentStudents)) setDepartmentStudents(cleanDepartmentStudents(parsed.departmentStudents));
         if (Array.isArray(parsed.blogs)) setBlogs(parsed.blogs);
-        if (Array.isArray(parsed.registeredStudentProfiles)) setRegisteredStudentProfiles(parsed.registeredStudentProfiles);
+        if (Array.isArray(parsed.registeredStudentProfiles)) setRegisteredStudentProfiles(cleanRegisteredStudentProfiles(parsed.registeredStudentProfiles));
         if (Array.isArray(parsed.portalResources)) setPortalResources(parsed.portalResources);
-        if (Array.isArray(parsed.admins)) setAdmins(parsed.admins);
+        if (Array.isArray(parsed.admins)) setAdmins(cleanAdmins(parsed.admins));
         if (Array.isArray(parsed.adminRegistrationRequests)) setAdminRegistrationRequests(parsed.adminRegistrationRequests);
         if (Array.isArray(parsed.routineSlots)) setRoutineSlots(parsed.routineSlots.map(normalizeRoutineSlot));
-        if (Array.isArray(parsed.studentGrievances)) setStudentGrievances(parsed.studentGrievances);
+        if (Array.isArray(parsed.studentGrievances)) setStudentGrievances(cleanStudentGrievances(parsed.studentGrievances));
 
         stateRef.current = {
           ...stateRef.current,
@@ -678,23 +688,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (Array.isArray(data.gallery)) setGallery(data.gallery);
             if (Array.isArray(data.departmentStudents)) setDepartmentStudents(cleanDepartmentStudents(data.departmentStudents));
             if (Array.isArray(data.blogs)) setBlogs(data.blogs);
-            if (Array.isArray(data.registeredStudentProfiles)) setRegisteredStudentProfiles(data.registeredStudentProfiles);
+            if (Array.isArray(data.registeredStudentProfiles)) setRegisteredStudentProfiles(cleanRegisteredStudentProfiles(data.registeredStudentProfiles));
             if (Array.isArray(data.portalResources)) setPortalResources(data.portalResources);
             if (Array.isArray(data.routineSlots)) setRoutineSlots(data.routineSlots.map(normalizeRoutineSlot));
-            if (Array.isArray(data.studentGrievances)) setStudentGrievances(data.studentGrievances);
+            if (Array.isArray(data.studentGrievances)) setStudentGrievances(cleanStudentGrievances(data.studentGrievances));
             if (Array.isArray(data.adminRegistrationRequests)) setAdminRegistrationRequests(data.adminRegistrationRequests);
             if (Array.isArray(data.admins)) {
-              setAdmins(data.admins);
+              const cleanedAdminsList = cleanAdmins(data.admins);
+              setAdmins(cleanedAdminsList);
               const savedUid = sessionStorage.getItem(AUTH_USER_KEY);
               if (savedUid) {
-                const matched = data.admins.find(a => a.id === savedUid);
+                const matched = cleanedAdminsList.find(a => a.id === savedUid);
                 if (matched) {
                   setCurrentAdmin(matched);
                 } else {
-                  setCurrentAdmin(data.admins.find(a => a.role === 'Super Admin') || data.admins[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
+                  setCurrentAdmin(cleanedAdminsList.find(a => a.role === 'Super Admin') || cleanedAdminsList[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
                 }
               } else {
-                setCurrentAdmin(data.admins.find(a => a.role === 'Super Admin') || data.admins[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
+                setCurrentAdmin(cleanedAdminsList.find(a => a.role === 'Super Admin') || cleanedAdminsList[0] || DEFAULT_ADMIN_ACCOUNTS[0]);
               }
             }
 

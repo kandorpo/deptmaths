@@ -214,23 +214,23 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
     setFormFullName('');
     setFormRollNo('');
     setFormClassSection('B.Sc. 1st Year (Section A)');
-    setFormGuRegNo(`GU${Math.floor(24000000 + Math.random() * 999999)}`);
+    setFormGuRegNo('');
     setFormCourseProgram('B.Sc. Mathematics (Honours/Major)');
     setFormSelectiveCourse(PRESET_SELECTIVE_COURSES[0]);
     setFormSemester('B.Sc. 1st Semester (Major)');
     setFormCustomSemester('');
     setFormBatch('2024 - 2028');
     setFormEmail('');
-    setFormPhone('+91 94350 00000');
+    setFormPhone('');
     setFormMentorName(faculty[0]?.name || 'Dr. Bidyut Kalita (HOD)');
-    setFormCgpa('8.50');
+    setFormCgpa('');
     setFormStatus('Active');
     setFormAdmissionYear('2024');
-    setFormDob('2005-06-15');
+    setFormDob('');
     setFormFatherName('');
-    setFormBloodGroup('O+');
-    setFormAddress('Dudhnoi, Goalpara, Assam');
-    setFormNotes('Authorized regular department student.');
+    setFormBloodGroup('');
+    setFormAddress('');
+    setFormNotes('');
     setFormDepartment('Mathematics');
     setFormError('');
     setIsModalOpen(true);
@@ -560,7 +560,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
       'Roll No',
       'Full Name',
       'Class/Section',
-      'GU Reg No',
+      'Enrolment / Reg No',
       'Course Program',
       'Selective Course Track',
       'Semester',
@@ -1001,7 +1001,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
                               </p>
                               {stu.guRegNo && (
                                 <p className="text-slate-500 text-[10px] font-mono">
-                                  GU Reg: {stu.guRegNo}
+                                  Reg / Enrolment: {stu.guRegNo}
                                 </p>
                               )}
                               <p className="text-slate-500 truncate">
@@ -1175,7 +1175,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
                               type="text"
                               value={inlineData.guRegNo || ''}
                               onChange={(e) => setInlineData({ ...inlineData, guRegNo: e.target.value })}
-                              placeholder="GU Reg No"
+                              placeholder="Enrolment / Reg No"
                               className="w-full px-2 py-1 bg-white border border-amber-300 rounded text-[10px] font-mono"
                             />
                           </td>
@@ -1436,7 +1436,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Manash Jyoti Ray"
+                      placeholder="Enter Full Name"
                       value={formFullName}
                       onChange={(e) => setFormFullName(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 text-xs font-medium"
@@ -1447,7 +1447,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. US-241-102-0089"
+                      placeholder="Enter Class Roll Number"
                       value={formRollNo}
                       onChange={(e) => setFormRollNo(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 text-xs font-mono font-bold text-blue-900"
@@ -1457,10 +1457,10 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Gauhati University Reg. No</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Enrolment No / Reg. No</label>
                     <input
                       type="text"
-                      placeholder="e.g. GU24089123"
+                      placeholder="Enter Enrolment No / Reg. No"
                       value={formGuRegNo}
                       onChange={(e) => setFormGuRegNo(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 text-xs font-mono"
@@ -1596,7 +1596,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
                   <label className="block font-semibold text-slate-700 mb-1">Phone / Mobile No.</label>
                   <input
                     type="text"
-                    placeholder="+91 94350 12345"
+                    placeholder="Enter Contact Number"
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 text-xs"
@@ -1814,8 +1814,7 @@ export const AdminStudentsSection: React.FC<AdminStudentsSectionProps> = ({
 
               <textarea
                 rows={7}
-                placeholder={`Roll No,Full Name,GU Reg No,Course Program,Selective Course,Semester,Batch,Email,Phone,Mentor,CGPA,Status,Class
-US-241-102-0099,Arunima Das,GU24089999,B.Sc. Mathematics (Honours/Major),Mathematical Physics & Dynamical Systems,1st Semester,2024 - 2028,arunima.das@student.dudhnoicollege.ac.in,+91 94350 99999,Dr. Bidyut Kalita,8.80,Active,B.Sc. 1st Year Section A`}
+                placeholder="Paste CSV rows here. Format: Roll No, Full Name, Enrolment / Reg No, Course Program, Selective Course, Semester, Batch, Email, Phone, Mentor, CGPA, Status, Class"
                 value={csvText}
                 onChange={(e) => setCsvText(e.target.value)}
                 className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-[11px] outline-none focus:ring-2 focus:ring-blue-900"
@@ -1825,7 +1824,7 @@ US-241-102-0099,Arunima Das,GU24089999,B.Sc. Mathematics (Honours/Major),Mathema
             <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 text-[11px] text-slate-600">
               <span className="font-bold text-slate-800 block">Expected Column Headers:</span>
               <p className="font-mono text-[10px] text-slate-500">
-                Roll No, Full Name, GU Reg No, Course Program, Selective Course Track, Semester, Batch, Email, Phone, Mentor, CGPA, Status, Class
+                Roll No, Full Name, Enrolment / Reg No, Course Program, Selective Course Track, Semester, Batch, Email, Phone, Mentor, CGPA, Status, Class
               </p>
             </div>
 

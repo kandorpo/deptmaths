@@ -155,38 +155,7 @@
       "scholarUrl": "https://scholar.google.com"
     }
   ],
-  "studentGrievances": [
-    {
-      "queryType": "Academic Guidance",
-      "id": "grv-101",
-      "rollNo": "US-241-102-0042",
-      "responseDate": "August 17, 2026",
-      "mentorName": "Dr. Bidyut Kalita (HOD)",
-      "submittedAt": "August 16, 2026",
-      "status": "Resolved",
-      "message": "Requesting permission and guidance for using the Department High-Performance Computing Workstation for Python SageMath simulation.",
-      "refNo": "GRV-4019",
-      "semester": "B.Sc. 3rd Semester (Major)",
-      "studentName": "Ankur Jyoti Rabha",
-      "adminResponse": "Access approved. Please report to Dr. Mridul Dutta during Computer Lab hours on Tuesday and Thursday 1:00 PM.",
-      "course": "B.Sc. Mathematics (Honours/Major)"
-    },
-    {
-      "responseDate": "August 19, 2026",
-      "mentorName": "Dr. Mridul Dutta",
-      "rollNo": "US-231-102-0018",
-      "semester": "B.Sc. 5th Semester (Major)",
-      "refNo": "GRV-4020",
-      "submittedAt": "August 18, 2026",
-      "status": "In Review",
-      "queryType": "Project / Guide Allocation",
-      "message": "Submitted final synopsis proposal on Fluid Boundary Layer Discretization for approval under 5th Sem Major project work.",
-      "adminResponse": "Synopsis reviewed by departmental committee. Minor revisions suggested for section 3. Contact mentor on Friday.",
-      "id": "grv-102",
-      "studentName": "Priyanka Das",
-      "course": "B.Sc. Mathematics (Honours/Major)"
-    }
-  ],
+  "studentGrievances": [],
   "researchProjects": [
     {
       "investigator": "Dr. Mukul Chandra Kalita (PI)",
@@ -476,170 +445,8 @@
     }
   ],
   "researchAreas": [],
-  "departmentStudents": [
-    {
-      "phone": "+91 91012 34567",
-      "semester": "B.Sc. 1st Semester (Major)",
-      "id": "dept-stu-03",
-      "guRegNo": "GU24098105",
-      "selectiveCourse": "MAT-MAJ-101: Calculus & Analytical Geometry",
-      "batch": "2024 - 2028",
-      "email": "himashree.nath@student.dudhnoicollege.ac.in",
-      "courseProgram": "B.Sc. Mathematics (Honours/Major)",
-      "rollNo": "US-241-102-0015",
-      "admissionYear": "2024",
-      "mentorName": "Dr. Mukul Chandra Kalita",
-      "status": "Active",
-      "fullName": "Himashree Nath"
-    },
-    {
-      "mentorName": "Dr. Pranab Jyoti Rabha",
-      "semester": "B.Sc. 1st Semester (Major)",
-      "courseProgram": "B.Sc. Mathematics (Honours/Major)",
-      "guRegNo": "GU24098178",
-      "selectiveCourse": "MAT-MAJ-101: Calculus & Analytical Geometry",
-      "admissionYear": "2024",
-      "email": "rupjyoti.rabha@student.dudhnoicollege.ac.in",
-      "id": "dept-stu-04",
-      "batch": "2024 - 2028",
-      "phone": "+91 97061 98234",
-      "status": "Active",
-      "fullName": "Rupjyoti Rabha",
-      "rollNo": "US-241-102-0088"
-    },
-    {
-      "courseProgram": "B.Sc. Mathematics (Honours/Major)",
-      "fullName": "Manash Pratim Sarma",
-      "phone": "+91 88765 43210",
-      "rollNo": "US-231-102-0033",
-      "selectiveCourse": "MAT-MAJ-302: Complex Analysis & Metric Spaces",
-      "batch": "2023 - 2027",
-      "status": "Active",
-      "admissionYear": "2023",
-      "guRegNo": "GU23087632",
-      "email": "manash.sarma@student.dudhnoicollege.ac.in",
-      "semester": "B.Sc. 5th Semester (Major)",
-      "id": "dept-stu-05",
-      "mentorName": "Dr. Dipankar Sarma"
-    },
-    {
-      "selectiveCourse": "MAT-MIN-201: Differential Equations & Linear Algebra",
-      "phone": "+91 86381 23456",
-      "semester": "B.Sc. 3rd Semester (Minor)",
-      "id": "dept-stu-07",
-      "guRegNo": "GU24098215",
-      "batch": "2024 - 2028",
-      "mentorName": "Mr. Kalyan Jyoti Nath",
-      "email": "debasish.hajong@student.dudhnoicollege.ac.in",
-      "courseProgram": "B.Sc. Mathematics (Minor)",
-      "rollNo": "US-241-102-0112",
-      "admissionYear": "2024",
-      "status": "Active",
-      "fullName": "Debasish Hajong"
-    },
-    {
-      "mentorName": "Dr. Hirendra Nath Roy",
-      "selectiveCourse": "MAT-MIN-301: Probability, Statistics & Vector Analysis",
-      "fullName": "Dipali Ray",
-      "email": "dipali.ray@student.dudhnoicollege.ac.in",
-      "id": "dept-stu-08",
-      "admissionYear": "2023",
-      "status": "Active",
-      "batch": "2023 - 2027",
-      "rollNo": "US-231-102-0056",
-      "phone": "+91 99540 12345",
-      "semester": "B.Sc. 5th Semester (Minor)",
-      "guRegNo": "GU23087678",
-      "courseProgram": "B.Sc. Mathematics (Minor)"
-    },
-    {
-      "courseProgram": "Value Added & SEC Computing",
-      "guRegNo": "GU24098254",
-      "fullName": "Bikash Sangma",
-      "email": "bikash.sangma@student.dudhnoicollege.ac.in",
-      "status": "Active",
-      "admissionYear": "2024",
-      "rollNo": "US-241-102-0145",
-      "selectiveCourse": "MAT-SEC-301: Scientific Computing with Python & LaTeX",
-      "mentorName": "Dr. Mridul Dutta",
-      "batch": "2024 - 2028",
-      "id": "dept-stu-09",
-      "semester": "B.Sc. 3rd Semester (Major)",
-      "phone": "+91 98590 65432"
-    },
-    {
-      "guRegNo": "GU21045230",
-      "fullName": "Tanushree Kalita",
-      "phone": "+91 94012 98765",
-      "batch": "2025 - 2027",
-      "mentorName": "Dr. Bidyut Kalita (HOD)",
-      "email": "tanushree.kalita@student.dudhnoicollege.ac.in",
-      "admissionYear": "2025",
-      "id": "dept-stu-10",
-      "selectiveCourse": "MAT-MSC-101: Advanced Topology & Functional Analysis",
-      "semester": "M.Sc. 1st Semester",
-      "courseProgram": "M.Sc. Mathematics",
-      "rollNo": "PG-251-102-0008",
-      "status": "Active"
-    },
-    {
-      "fullName": "Kankan Jyoti Rabha",
-      "admissionYear": "2022",
-      "guRegNo": "GU22076123",
-      "id": "dept-stu-11",
-      "email": "kankan.rabha@alumni.dudhnoicollege.ac.in",
-      "courseProgram": "B.Sc. Mathematics (Honours/Major)",
-      "mentorName": "Dr. Bidyut Kalita (HOD)",
-      "batch": "2022 - 2025",
-      "status": "Alumni",
-      "selectiveCourse": "MAT-MAJ-401: Differential Geometry & Tensor Calculus",
-      "rollNo": "US-221-102-0007",
-      "semester": "Graduated (Alumni)",
-      "phone": "+91 94350 43210"
-    }
-  ],
-  "registeredStudentProfiles": [
-    {
-      "batch": "2024 - 2028",
-      "guRegNo": "GU24098124",
-      "semester": "B.Sc. 3rd Semester (Major)",
-      "phone": "+91 94352 11984",
-      "mentorName": "Dr. Bidyut Kalita (HOD)",
-      "rollNo": "US-241-102-0042",
-      "bio": "Undergraduate student passionate about Analytic Number Theory and Computational Python. Core volunteer in the Ramanujan Math Club.",
-      "interests": [
-        "Number Theory",
-        "Python Algorithms",
-        "Abstract Algebra"
-      ],
-      "fullName": "Ankur Jyoti Rabha",
-      "program": "B.Sc. Mathematics (Honours/Major)",
-      "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400",
-      "email": "ankur.rabha@student.dudhnoicollege.ac.in",
-      "registeredDate": "August 12, 2024",
-      "id": "stu-101"
-    },
-    {
-      "mentorName": "Dr. Mridul Dutta",
-      "program": "B.Sc. Mathematics (Honours/Major)",
-      "email": "priyanka.das@student.dudhnoicollege.ac.in",
-      "semester": "B.Sc. 5th Semester (Major)",
-      "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400",
-      "phone": "+91 98640 45219",
-      "id": "stu-102",
-      "guRegNo": "GU23087611",
-      "fullName": "Priyanka Das",
-      "bio": "Aspiring researcher working on Fluid Dynamics boundary layers and LaTeX documentation for departmental seminar series.",
-      "rollNo": "US-231-102-0018",
-      "interests": [
-        "Fluid Dynamics",
-        "Differential Equations",
-        "Numerical Analysis"
-      ],
-      "batch": "2023 - 2027",
-      "registeredDate": "July 28, 2023"
-    }
-  ],
+  "departmentStudents": [],
+  "registeredStudentProfiles": [],
   "events": [],
   "departmentInfo": {
     "hodMessage": "Welcome to the Department of Mathematics at Dudhnoi College. For over five decades, our department has stood as a beacon of intellectual rigor and academic distinction in Lower Assam. We believe that mathematics is not merely a collection of formulas, but a profound universal language that sharpens analytical thinking, unlocks scientific discoveries, and models complex real-world phenomena. Under the NEP 2020 framework, we integrate traditional mathematical foundations with modern computational tools such as Python, SageMath, and LaTeX. We invite you to explore our vibrant academic community.",
@@ -958,24 +765,6 @@
       "email": "kandorpobarman@gmail.com",
       "passwordHash": "Daisuke34",
       "fullName": "Kandorpo Barman"
-    },
-    {
-      "status": "Active",
-      "username": "hod_math",
-      "passwordHash": "math1972",
-      "role": "HOD",
-      "fullName": "HOD Mathematics",
-      "email": "hod@dudhnoicollege.ac.in",
-      "id": "admin-hod"
-    },
-    {
-      "id": "admin-dept",
-      "status": "Active",
-      "role": "Department Admin",
-      "passwordHash": "dudhnoi1972",
-      "username": "department_admin",
-      "email": "math_dept@dudhnoicollege.ac.in",
-      "fullName": "Department Coordinator"
     }
   ]
 }

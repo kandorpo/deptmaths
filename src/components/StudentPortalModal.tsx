@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { hashPassword, verifyPassword } from '../utils/hashHelper';
+import { compressFile } from '../utils/fileCompressor';
 import {
   GraduationCap,
   FileText,
@@ -469,14 +470,14 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
       id: `stu-${Date.now()}`,
       fullName: matched ? matched.fullName : regFullName.trim(),
       rollNo: matched ? matched.rollNo : regRollNo.trim(),
-      guRegNo: regGuRegNo.trim() || matched?.guRegNo || `GU${Math.floor(24000000 + Math.random() * 999999)}`,
+      guRegNo: regGuRegNo.trim() || matched?.guRegNo || '',
       email: regEmail.trim(),
-      phone: regPhone.trim() || matched?.phone || '+91 94350 00000',
+      phone: regPhone.trim() || matched?.phone || '',
       program: regProgram,
       semester: matched?.semester || regSemester,
       batch: matched?.batch || regBatch,
       avatar: regAvatar,
-      bio: regBio.trim() || `Verified student in the Department of Mathematics, Dudhnoi College (${matched?.selectiveCourse || 'Honours track'}).`,
+      bio: regBio.trim(),
       mentorName: assignedMentor,
       interests: regInterests.split(',').map((i) => i.trim()).filter(Boolean),
       password: hashedPassword,
@@ -514,7 +515,7 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
   };
 
   // Profile Picture File Upload Handler (Data URL)
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>, isRegisterForm = false) => { setAvatarError(''); 
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isRegisterForm = false) => { setAvatarError(''); 
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -523,27 +524,28 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
       return;
     }
 
-    if (file.size > 500 * 1024) {
-      if (isRegisterForm) { setAvatarError('Photo size must be under 500 KB.'); } else { alert('Photo size must be under 500 KB.'); }
-      return;
-    }
-
     setAvatarUploadLoading(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (isRegisterForm) {
-        setRegAvatar(dataUrl);
-      } else if (currentStudent) {
-        const updated = { ...currentStudent, avatar: dataUrl };
-        setCurrentStudent(updated);
-        localStorage.setItem(STORAGE_KEY_STUDENT, JSON.stringify(updated));
+    try {
+      const compressedFile = await compressFile(file, 150);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (isRegisterForm) {
+          setRegAvatar(dataUrl);
+        } else if (currentStudent) {
+          const updated = { ...currentStudent, avatar: dataUrl };
+          setCurrentStudent(updated);
+          localStorage.setItem(STORAGE_KEY_STUDENT, JSON.stringify(updated));
 
-        updateRegisteredStudentProfile(updated);
-      }
+          updateRegisteredStudentProfile(updated);
+        }
+        setAvatarUploadLoading(false);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (err) {
+      console.error('Image compression failed:', err);
       setAvatarUploadLoading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   // Save Profile Edits
@@ -724,7 +726,7 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                         <p className="text-xs text-slate-300 flex flex-wrap items-center gap-2">
                           <span>Roll: <strong className="text-amber-300 font-mono">{currentStudent.rollNo}</strong></span>
                           <span>•</span>
-                          <span>GU Reg: <strong className="text-slate-200 font-mono">{currentStudent.guRegNo}</strong></span>
+                          <span>Enrolment / Reg: <strong className="text-slate-200 font-mono">{currentStudent.guRegNo}</strong></span>
                         </p>
                       </div>
                     </div>
@@ -1046,7 +1048,7 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                     <form onSubmit={handleLogin} className="space-y-3.5 text-xs" autoComplete="off">
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          Roll No / GU Registration No / Email *
+                          Roll No / Enrolment No / Reg. No / Email *
                         </label>
                         <div className="relative">
                           <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1392,10 +1394,10 @@ export const StudentPortalModal: React.FC<StudentPortalModalProps> = ({ isOpen, 
                         </div>
 
                         <div>
-                          <label className="block font-semibold text-slate-700 mb-1">GU Registration No.</label>
+                          <label className="block font-semibold text-slate-700 mb-1">Enrolment No / Reg. No</label>
                           <input
                             type="text"
-                            placeholder="e.g. GU24099812"
+                            placeholder="Enter Enrolment No / Reg. No"
                             value={regGuRegNo}
                             onChange={(e) => setRegGuRegNo(e.target.value)}
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white"

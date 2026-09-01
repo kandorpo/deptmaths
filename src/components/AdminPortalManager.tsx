@@ -133,16 +133,16 @@ export const AdminPortalManager: React.FC = () => {
     program: 'B.Sc. Mathematics (Honours/Major)',
     selectiveCourse: 'MAT-MAJ-101: Calculus & Analytical Geometry',
     batch: '2024 - 2028',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
+    avatar: '',
     bio: '',
     mentorName: 'Dr. Bidyut Kalita (HOD)',
-    interests: ['Calculus', 'Python', 'Linear Algebra'],
+    interests: [],
     registeredDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    cgpa: 8.5,
+    cgpa: undefined,
     admissionYear: '2024',
     dob: '',
     fatherName: '',
-    bloodGroup: 'O+',
+    bloodGroup: '',
     address: '',
     careerGoals: ''
   });
@@ -198,23 +198,23 @@ export const AdminPortalManager: React.FC = () => {
       guRegNo: '',
       classSection: 'Section A',
       email: '',
-      phone: '+91 94350 ',
+      phone: '',
       semester: 'B.Sc. 1st Semester (Major)',
       program: 'B.Sc. Mathematics (Honours/Major)',
       selectiveCourse: 'MAT-MAJ-101: Calculus & Analytical Geometry',
       batch: '2024 - 2028',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
-      bio: 'Enthusiastic mathematics student at Dudhnoi College.',
+      avatar: '',
+      bio: '',
       mentorName: 'Dr. Bidyut Kalita (HOD)',
-      interests: ['Number Theory', 'Computational Python'],
+      interests: [],
       registeredDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      cgpa: 8.0,
+      cgpa: undefined,
       admissionYear: '2024',
-      dob: '2005-01-01',
+      dob: '',
       fatherName: '',
-      bloodGroup: 'B+',
-      address: 'Dudhnoi, Goalpara, Assam',
-      careerGoals: 'Higher Research in Pure Mathematics'
+      bloodGroup: '',
+      address: '',
+      careerGoals: ''
     });
     setIsAddingStudent(true);
   };
@@ -358,7 +358,7 @@ export const AdminPortalManager: React.FC = () => {
     const headers = [
       'Full Name',
       'Roll No',
-      'GU Reg No',
+      'Enrolment / Reg No',
       'Class/Section',
       'Program',
       'Current Semester',
@@ -1157,7 +1157,7 @@ export const AdminPortalManager: React.FC = () => {
 
             <form onSubmit={handleSaveStudent} className="space-y-4 text-xs">
               
-              {/* Row 1: Full Name, Roll No, GU Reg */}
+              {/* Row 1: Full Name, Roll No, Enrolment/Reg No */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Full Name *</label>
@@ -1180,9 +1180,10 @@ export const AdminPortalManager: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">GU Registration No.</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Enrolment No / Reg. No</label>
                   <input
                     type="text"
+                    placeholder="Enter Enrolment No / Reg. No"
                     value={studentForm.guRegNo || ''}
                     onChange={(e) => setStudentForm({ ...studentForm, guRegNo: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white font-mono"
